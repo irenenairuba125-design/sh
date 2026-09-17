@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="section-tint">
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card p-4">
+      <div class="brand-mark mb-3">Q</div>
+      <h1 class="mb-4">Sign in</h1>
+      <form method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        {% for field in form %}
+          <div class="mb-3">
+            <label class="form-label">{{ field.label }}</label>
+            {{ field }}
+            {{ field.errors }}
+          </div>
+        {% endfor %}
+        <button class="btn btn-teal w-100">Sign in</button>
+      </form>
+      <p class="text-center small text-muted mt-3">New here? <a href="{% url 'accounts:register' %}">Get started</a></p>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

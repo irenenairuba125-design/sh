@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+  <div class="col-md-7">
+    <div class="card p-4">
+      <h1 class="mb-4">Add a lesson to "{{ course.title }}"</h1>
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        {% for field in form %}
+          <div class="mb-3">
+            <label class="form-label">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+            {{ field.errors }}
+          </div>
+        {% endfor %}
+        <button class="btn btn-teal">Upload Lesson</button>
+      </form>
+    </div>
+  </div>
+  <div class="col-md-5">
+    <h5>Lessons so far</h5>
+    <ul class="list-group">
+      {% for lesson in lessons %}
+        <li class="list-group-item">{{ lesson.order }}. {{ lesson.title }}{% if lesson.free_preview %} <span class="badge bg-secondary">preview</span>{% endif %}</li>
+      {% empty %}
+        <li class="list-group-item text-muted">None yet.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}

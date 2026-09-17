@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ lesson.title }}</h1>
+<p class="text-muted">{{ lesson.course.title }}</p>
+
+{% if lesson.video_file %}
+<video width="100%" style="max-height:70vh;background:#000;border-radius:12px;" controls controlsList="nodownload" oncontextmenu="return false;">
+  <source src="{% url 'courses:stream_video' lesson.id %}" type="video/mp4">
+  Your browser does not support video playback.
+</video>
+{% else %}
+<div class="alert alert-secondary">No video uploaded for this lesson yet.</div>
+{% endif %}
+
+<div class="mt-3 d-flex gap-2">
+  {% if lesson.notes_pdf %}
+    <a href="{% url 'courses:download_notes' lesson.id %}" class="btn btn-outline-teal">Download Notes (PDF)</a>
+  {% endif %}
+  {% if lesson.quiz %}
+    <a href="{% url 'quizzes:take_quiz' lesson.quiz.id %}" class="btn btn-teal">Take Quiz</a>
+  {% endif %}
+  <a href="{% url 'courses:course_detail' lesson.course_id %}" class="btn btn-outline-secondary">Back to course</a>
+</div>
+{% endblock %}

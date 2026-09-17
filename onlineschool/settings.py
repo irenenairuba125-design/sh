@@ -1,0 +1,101 @@
+from pathlib import Path
+from decouple import config, Csv
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+SECRET_KEY = config('SECRET_KEY', default='dev-insecure-secret-key-change-me')
+DEBUG = config('DEBUG', default=True, cast=bool)
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=Csv())
+
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+
+    'core',
+    'accounts',
+    'courses',
+    'payments',
+    'quizzes',
+    'certificates',
+    'reviews',
+]
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+ROOT_URLCONF = 'onlineschool.urls'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+                'core.context_processors.site_settings',
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION = 'onlineschool.wsgi.application'
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
+AUTH_USER_MODEL = 'accounts.User'
+
+AUTH_PASSWORD_VALIDATORS = [
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+]
+
+LANGUAGE_CODE = 'en-us'
+TIME_ZONE = 'Africa/Kampala'
+USE_I18N = True
+USE_TZ = True
+
+STATIC_URL = 'static/'
+
+# Public media: course thumbnails, logos, certificate images. Safe to serve directly.
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Protected media: lesson videos and notes. NEVER served directly by a public URL -
+# only through the permission-checked views in courses/views.py. This is what makes
+# "can't watch unless you paid" actually true instead of just hidden in the UI.
+PROTECTED_MEDIA_ROOT = BASE_DIR / 'protected_media'
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_URL = 'accounts:login'
+LOGIN_REDIRECT_URL = 'accounts:post_login'
+LOGOUT_REDIRECT_URL = 'core:home'
+
+# --- Pesapal (MTN MoMo / Airtel Money / Visa / Mastercard for Uganda) ---
+PESAPAL_ENV = config('PESAPAL_ENV', default='sandbox')
+PESAPAL_CONSUMER_KEY = config('PESAPAL_CONSUMER_KEY', default='')
+PESAPAL_CONSUMER_SECRET = config('PESAPAL_CONSUMER_SECRET', default='')
+PESAPAL_IPN_ID = config('PESAPAL_IPN_ID', default='')
+SITE_URL = config('SITE_URL', default='http://127.0.0.1:8000')

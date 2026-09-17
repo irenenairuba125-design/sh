@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load course_extras %}
+{% block content %}
+<div class="mb-4" style="border-radius:20px;overflow:hidden;">
+  {% if course.thumbnail %}
+    <img src="{{ course.thumbnail.url }}" style="width:100%;height:220px;object-fit:cover;">
+  {% else %}
+    <div style="height:180px;background:{{ course.category|category_gradient }};display:flex;align-items:center;justify-content:center;">
+      <span style="width:64px;height:64px;color:rgba(255,255,255,0.9);">{% include "courses/_category_icon.html" with category=course.category %}</span>
+    </div>
+  {% endif %}
+</div>
+
+<div class="row g-4">
+  <div class="col-md-8">
+    {% if course.category %}<div class="small fw-semibold mb-2" style="color:var(--teal-dark);">{{ course.get_category_display }}</div>{% endif %}
+    <h1>{{ course.title }}</h1>
+    {% if course.average_rating %}
+      <div class="mb-2" style="color:var(--gold);">
+        {% for _ in course.average_rating|floatformat:0|times %}&#9733;{% endfor %}
+        <span class="text-muted small">({{ course.average_rating|floatformat:1 }})</span>
+      </div>
+    {% endif %}
+    {% if course.teacher %}
+      <p class="text-muted small mb-3">Taught by {{ course.teacher.first_name|default:course.teacher.username }} {{ course.teacher.last_name }}{% if course.teacher.headline %} &middot; {{ course.teacher.headline }}{% endif %}</p>
+    {% endif %}
+    <p class="text-muted">{{ course.description }}</p>
+
+    <h3 class="mt-4 mb-3">Lessons</h3>
+    <ul class="list-group">
+      {% for lesson, has_access in lessons_with_access %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span class="d-flex align-items-center gap-2">
+            <span style="width:18px;height:18px;color:{% if has_access %}var(--teal-dark){% else %}var(--muted){% endif %};">
+              {% if has_access %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z"/></svg>
+              {% else %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+              {% endif %}
+            </span>
+            {{ lesson.title }}{% if lesson.free_preview %} <span class="badge" style="background:var(--teal-light);color:var(--teal-dark);">Free preview</span>{% endif %}
+          </span>
+          {% if has_access %}
+            <a href="{% url 'courses:watch_lesson' lesson.id %}" class="btn btn-sm btn-teal">Watch</a>
+          {% else %}
+            <span class="text-muted small">Locked</span>
+          {% endif %}
+        </li>
+      {% empty %}
+        <li class="list-group-item text-muted">No lessons uploaded yet.</li>
+      {% endfor %}
+    </ul>
+
+    {% if is_paid %}
+    <div class="card p-4 mt-4">
+      <h5>Rate this course</h5>
+      <form method="post" action="{% url 'reviews:add_review' course.id %}">
+        {% csrf_token %}
+        <div class="mb-2">
+          <label class="form-label">Rating (1-5)</label>
+          <input type="number" name="rating" min="1" max="5" class="form-control" style="max-width:100px;" required>
+        </div>
+        <div class="mb-2">
+          <textarea name="comment" class="form-control" placeholder="Your review"></textarea>
+        </div>
+        <button class="btn btn-outline-teal">Submit Review</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="col-md-4">
+    <div class="card p-4" style="position:sticky;top:88px;">
+      <div class="badge-price fs-4 text-center mb-3">
+        UGX {{ course.price|floatformat:0 }}{% if course.access_days %} / {{ course.access_days }} days{% endif %}
+      </div>
+      {% if is_paid %}
+        <div class="alert alert-success mb-0">You have access to this course.</div>
+      {% elif user.is_authenticated %}
+        <a href="{% url 'payments:checkout' course.id %}" class="btn btn-teal btn-lg w-100">Pay with MoMo / Card</a>
+      {% else %}
+        <a href="{% url 'accounts:login' %}?next={% url 'courses:course_detail' course.id %}" class="btn btn-teal btn-lg w-100">Sign in to enroll</a>
+      {% endif %}
+      <hr>
+      <div class="small text-muted d-flex align-items-center gap-2 mb-2">
+        <span style="width:16px;height:16px;">&#128190;</span> Download notes for offline study
+      </div>
+      <div class="small text-muted d-flex align-items-center gap-2 mb-2">
+        <span style="width:16px;height:16px;">&#127942;</span> Certificate on passing the quiz
+      </div>
+      <div class="small text-muted d-flex align-items-center gap-2">
+        <span style="width:16px;height:16px;">&#128241;</span> Pay with MTN MoMo / Airtel Money
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

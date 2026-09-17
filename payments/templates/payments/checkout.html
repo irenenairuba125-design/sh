@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="section-tint">
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card p-4 text-center">
+      <div class="icon-chip mx-auto mb-3" style="background:linear-gradient(135deg, var(--teal), var(--teal-dark));">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+      </div>
+      <h1 class="mb-3">Checkout</h1>
+      <p class="mb-1 text-muted">You're about to pay</p>
+      <div class="badge-price fs-3 mb-3 d-inline-block">UGX {{ course.price|floatformat:0 }}</div>
+      <p class="text-muted mb-4">for <strong>{{ course.title }}</strong></p>
+      <form method="post">
+        {% csrf_token %}
+        <button class="btn btn-teal btn-lg w-100">Pay with MTN MoMo / Airtel Money / Card</button>
+      </form>
+      <p class="small text-muted mt-3">You'll be redirected to Pesapal's secure payment page.</p>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="mb-4">My Learning</h1>
+<ul class="list-group mb-5">
+  {% for enrollment in enrollments %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+      <a href="{% url 'courses:course_detail' enrollment.course.id %}">{{ enrollment.course.title }}</a>
+      {% if enrollment.expiry_date %}<span class="text-muted small">expires {{ enrollment.expiry_date|date:'d M Y' }}</span>{% endif %}
+    </li>
+  {% empty %}
+    <li class="list-group-item text-muted">You haven't enrolled in any course yet. <a href="{% url 'core:home' %}">Browse courses</a>.</li>
+  {% endfor %}
+</ul>
+
+<h2 class="mb-3">My Certificates</h2>
+<ul class="list-group">
+  {% for cert in certificates %}
+    <li class="list-group-item">{{ cert.course.title }} &mdash; code <strong>{{ cert.certificate_code }}</strong></li>
+  {% empty %}
+    <li class="list-group-item text-muted">No certificates yet &mdash; pass a course quiz to earn one.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6 text-center">
+    {% if payment.status == 'success' %}
+      <div class="alert alert-success">Payment successful! You now have access to {{ payment.course.title }}.</div>
+      <a href="{% url 'courses:course_detail' payment.course.id %}" class="btn btn-teal">Go to course</a>
+    {% elif payment.status == 'failed' %}
+      <div class="alert alert-danger">Payment failed or was cancelled.</div>
+      <a href="{% url 'payments:checkout' payment.course.id %}" class="btn btn-outline-teal">Try again</a>
+    {% else %}
+      <div class="alert alert-warning">Payment is still processing. Refresh this page in a moment.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="text-center">
+  <h1 class="mb-3">Your score: {{ attempt.score_percent }}%</h1>
+  {% if attempt.passed %}
+    <div class="alert alert-success">
+      You passed!{% if certificate %} Certificate code: <strong>{{ certificate.certificate_code }}</strong>{% endif %}
+    </div>
+    <a href="{% url 'courses:my_learning' %}" class="btn btn-teal">Go to My Learning</a>
+  {% else %}
+    <div class="alert alert-danger">You didn't reach the pass mark ({{ quiz.pass_mark_percent }}%). Try again.</div>
+    <a href="{% url 'quizzes:take_quiz' quiz.id %}" class="btn btn-outline-teal">Retake Quiz</a>
+  {% endif %}
+</div>
+{% endblock %}

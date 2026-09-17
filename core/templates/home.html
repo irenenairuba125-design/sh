@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load course_extras %}
+{% block content %}
+<div class="hero mb-5">
+  <div class="hero-content">
+    <h1>Learn the law. Get paid to teach it.</h1>
+    <p class="mb-4">Moot court, legal drafting, case briefing, Bar Course prep. Practical skills from advocates who've done the work. Paid for with mobile money &mdash; subscribe monthly, cancel anytime.</p>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="#courses" class="btn btn-teal btn-lg">Browse courses</a>
+      {% if user.is_authenticated and user.role == 'teacher' or user.is_superuser %}
+        <a href="{% url 'courses:teacher_dashboard' %}" class="btn btn-outline-teal btn-lg">Start teaching</a>
+      {% else %}
+        <a href="{% url 'accounts:login' %}" class="btn btn-outline-teal btn-lg">Start teaching</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<h2 class="mb-4">Real skills. Real work.</h2>
+<div class="d-flex flex-wrap gap-2 mb-5">
+  <a href="{% url 'core:home' %}" class="btn btn-sm {% if not selected_category %}btn-teal{% else %}btn-outline-teal{% endif %}">All</a>
+  {% for c in category_counts %}
+    <a href="?category={{ c.value }}" class="btn btn-sm d-inline-flex align-items-center gap-2 {% if selected_category == c.value %}btn-teal{% else %}btn-outline-teal{% endif %}">
+      <span style="width:16px;height:16px;display:inline-flex;">{% include "courses/_category_icon.html" with category=c.value %}</span>
+      {{ c.label }} <span class="opacity-75">&middot; {{ c.count }} course{{ c.count|pluralize }}</span>
+    </a>
+  {% endfor %}
+</div>
+
+<div class="row mb-5 g-4">
+  <div class="col-md-7">
+    <h2 class="mb-4" id="courses">Two doors. Same house.</h2>
+    <div class="row g-4">
+      <div class="col-sm-6">
+        <div class="card card-hover p-4 h-100">
+          <div class="icon-chip mb-3" style="background: linear-gradient(135deg, var(--teal), var(--teal-dark));">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4L2 9l10 5 10-5-10-5z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg>
+          </div>
+          <h5>Learn</h5>
+          <p class="text-muted small">Subscribe to any track, download lessons for offline study, watch a free preview before you pay.</p>
+          <a href="#courses-grid" class="btn btn-outline-teal btn-sm mt-auto">Browse courses</a>
+        </div>
+      </div>
+      <div class="col-sm-6">
+        <div class="card card-hover p-4 h-100">
+          <div class="icon-chip mb-3" style="background: linear-gradient(135deg, var(--gold), #D98E1F);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="4" width="8" height="12" rx="4"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6"/></svg>
+          </div>
+          <h5>Teach</h5>
+          <p class="text-muted small">Upload lessons, set your price, get paid weekly to mobile money.</p>
+          {% if user.is_authenticated and user.role == 'teacher' or user.is_superuser %}
+            <a href="{% url 'courses:teacher_dashboard' %}" class="btn btn-outline-teal btn-sm mt-auto">Start teaching</a>
+          {% else %}
+            <a href="{% url 'accounts:login' %}" class="btn btn-outline-teal btn-sm mt-auto">Start teaching</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if spotlight %}
+  <div class="col-md-5">
+    <h2 class="mb-4">Instructor spotlight</h2>
+    <div class="card p-4" style="background: linear-gradient(160deg, var(--teal-light), #fff);">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <div style="width:52px;height:52px;border-radius:999px;background:linear-gradient(135deg, var(--teal), var(--teal-dark));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;">
+          {{ spotlight.teacher.first_name|default:spotlight.teacher.username|first|upper }}{{ spotlight.teacher.last_name|first|upper }}
+        </div>
+        <div>
+          <div class="fw-bold">{{ spotlight.teacher.first_name|default:spotlight.teacher.username }} {{ spotlight.teacher.last_name|slice:":1" }}{% if spotlight.teacher.last_name %}.{% endif %}</div>
+          <div class="small text-muted">{{ spotlight.teacher.headline|default:"Instructor on Qiora" }}</div>
+        </div>
+      </div>
+      {% if spotlight.course %}<p class="mb-1 fw-semibold">{{ spotlight.course.title }}</p>{% endif %}
+      <p class="small text-muted mb-1">{% if spotlight.teacher.location %}&#128205; {{ spotlight.teacher.location }}{% endif %}</p>
+      <p class="small text-muted mb-0">{{ spotlight.subscribers }} subscriber{{ spotlight.subscribers|pluralize }}</p>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<div id="courses-grid" class="row g-4">
+  {% for course in courses %}
+  <div class="col-md-4">
+    <div class="card card-hover h-100 overflow-hidden">
+      {% if course.thumbnail %}
+        <img src="{{ course.thumbnail.url }}" class="card-img-top" style="height:160px;object-fit:cover;">
+      {% else %}
+        <div style="height:160px;background:{{ course.category|category_gradient }};display:flex;align-items:center;justify-content:center;">
+          <span style="width:44px;height:44px;color:rgba(255,255,255,0.9);">{% include "courses/_category_icon.html" with category=course.category %}</span>
+        </div>
+      {% endif %}
+      <div class="card-body d-flex flex-column">
+        {% if course.category %}<div class="small fw-semibold mb-1" style="color:var(--teal-dark);">{{ course.get_category_display }}</div>{% endif %}
+        <h5 class="card-title">{{ course.title }}</h5>
+        <p class="card-text text-muted small flex-grow-1">{{ course.description|truncatewords:18 }}</p>
+        {% if course.average_rating %}
+        <div class="mb-2" style="color:var(--gold);font-size:13px;">
+          {% for _ in course.average_rating|floatformat:0|times %}&#9733;{% endfor %}
+          <span class="text-muted">({{ course.average_rating|floatformat:1 }})</span>
+        </div>
+        {% endif %}
+        <div class="d-flex justify-content-between align-items-center mt-2">
+          <span class="badge-price">UGX {{ course.price|floatformat:0 }}{% if course.access_days %} / {{ course.access_days }}d{% endif %}</span>
+          <a href="{% url 'courses:course_detail' course.id %}" class="btn btn-teal btn-sm">View Course</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="section-tint text-center">
+    <p class="text-muted mb-0">No courses published yet. Check back soon.</p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="section-tint">
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card p-4">
+      <div class="brand-mark mb-3">Q</div>
+      <h1 class="mb-1">Create your student account</h1>
+      <p class="text-muted small mb-4">Free to join &mdash; you only pay when you subscribe to a course.</p>
+      <form method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        {% for field in form %}
+          <div class="mb-3">
+            <label class="form-label">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+            {{ field.errors }}
+          </div>
+        {% endfor %}
+        <button class="btn btn-teal w-100">Get started</button>
+      </form>
+      <p class="text-center small text-muted mt-3">Already have an account? <a href="{% url 'accounts:login' %}">Sign in</a></p>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
