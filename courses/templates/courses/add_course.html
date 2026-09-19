@@ -3,7 +3,7 @@
 <div class="row justify-content-center">
   <div class="col-md-7">
     <div class="card p-4">
-      <h1 class="mb-4">Add a course</h1>
+      <h1 class="mb-4">{% if editing %}Edit "{{ editing.title }}"{% else %}Add a course{% endif %}</h1>
       <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form.non_field_errors }}
@@ -15,7 +15,7 @@
             {{ field.errors }}
           </div>
         {% endfor %}
-        <button class="btn btn-teal">Create Course</button>
+        <button class="btn btn-teal">{% if editing %}Save changes{% else %}Create Course{% endif %}</button>
       </form>
     </div>
   </div>

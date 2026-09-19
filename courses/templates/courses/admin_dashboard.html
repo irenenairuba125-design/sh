@@ -50,7 +50,7 @@
 <h2 class="mb-3">All Courses</h2>
 <div class="card p-0 overflow-hidden">
 <table class="table mb-0">
-  <thead><tr><th>Title</th><th>Category</th><th>Teacher</th><th>Price</th><th>Published</th></tr></thead>
+  <thead><tr><th>Title</th><th>Category</th><th>Teacher</th><th>Price</th><th>Published</th><th></th></tr></thead>
   <tbody>
     {% for c in courses %}
       <tr>
@@ -59,6 +59,11 @@
         <td>{{ c.teacher|default:'-' }}</td>
         <td>UGX {{ c.price|floatformat:0 }}</td>
         <td>{% if c.is_published %}<span class="badge" style="background:var(--teal-light);color:var(--teal-dark);">Yes</span>{% else %}<span class="badge bg-light text-muted">No</span>{% endif %}</td>
+        <td class="text-end">
+          <a href="{% url 'courses:upload_lesson' c.id %}" class="btn btn-sm btn-outline-teal">Lessons</a>
+          <a href="{% url 'courses:edit_course' c.id %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+          <form method="post" action="{% url 'courses:delete_course' c.id %}" class="d-inline" onsubmit="return confirm('Delete this course?');">{% csrf_token %}<button class="btn btn-sm btn-outline-danger">Delete</button></form>
+        </td>
       </tr>
     {% endfor %}
   </tbody>

@@ -17,7 +17,13 @@
       <div class="p-3">
         <h5>{{ course.title }}</h5>
         <p class="text-muted small">{{ course.lessons.count }} lesson{{ course.lessons.count|pluralize }}</p>
-        <a href="{% url 'courses:upload_lesson' course.id %}" class="btn btn-outline-teal btn-sm">Manage Lessons</a>
+        <div class="d-flex gap-1 flex-wrap">
+          <a href="{% url 'courses:upload_lesson' course.id %}" class="btn btn-outline-teal btn-sm">Manage Lessons</a>
+          <a href="{% url 'courses:edit_course' course.id %}" class="btn btn-outline-secondary btn-sm">Edit</a>
+          <form method="post" action="{% url 'courses:delete_course' course.id %}" onsubmit="return confirm('Delete this whole course and its lessons?');">
+            {% csrf_token %}<button class="btn btn-outline-danger btn-sm">Delete</button>
+          </form>
+        </div>
       </div>
     </div>
   </div>
@@ -39,6 +45,26 @@
       <tr><td>{{ e.user.username }}</td><td>{{ e.course.title }}</td><td>{{ e.expiry_date|date:'d M Y'|default:'Lifetime' }}</td></tr>
     {% empty %}
       <tr><td colspan="3" class="text-muted">No paying students yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+<h2 class="mb-3 mt-5">Recent quiz results</h2>
+<div class="card p-0 overflow-hidden">
+<table class="table mb-0">
+  <thead><tr><th>Student</th><th>Course</th><th>Quiz</th><th>Score</th><th>When</th></tr></thead>
+  <tbody>
+    {% for a in attempts %}
+      <tr>
+        <td>{{ a.user.username }}</td>
+        <td>{{ a.quiz.lesson.course.title }}</td>
+        <td>{{ a.quiz.title }}</td>
+        <td><span class="badge {% if a.passed %}bg-success{% else %}bg-secondary{% endif %}">{{ a.score_percent }}%{% if a.passed %} passed{% endif %}</span></td>
+        <td class="text-muted small">{{ a.attempted_at|date:'d M Y H:i' }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5" class="text-muted">No quiz attempts yet.</td></tr>
     {% endfor %}
   </tbody>
 </table>

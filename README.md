@@ -1,122 +1,84 @@
-# Qiora for Law Students — Pay-to-Access Online Studying System
+# Qiora for Law Students
 
-A Django rebuild of the flow you sketched: register, pick a course, pay via MTN MoMo /
-Airtel Money / card through Pesapal, get auto-unlocked, watch protected video, do a
-quiz, earn a certificate. Built for reselling to schools / law faculties in Uganda.
+A pay-to-access online studying system for law students in Uganda. Students register, pick a
+course, pay with MTN MoMo / Airtel Money / card (via Pesapal), get unlocked automatically,
+watch protected video, download notes, take quizzes and earn certificates. It installs on a
+phone as an app (PWA) and lessons can be saved for offline study.
 
-## What's inside
+## What it does
 
-- **accounts** — custom `User` with `role` (admin/teacher/student), `phone` (for mobile
-  money), `is_blocked` (admin can lock a student out from `/django-admin/`).
-- **courses** — `Course`, `Lesson`. This is where the paywall actually lives:
-  `courses/views.py`'s `_has_access()` is the one function every locked view checks.
-- **payments** — `Enrollment` (is_paid + expiry), `Payment`, and
-  `payments/services/pesapal.py`, the Pesapal API v3 integration.
-- **quizzes** — `Quiz`, `Question`, `QuizAttempt`.
-- **certificates** — auto-issued when a quiz is passed.
-- **reviews** — one review per paid student per course.
-- **core** — homepage, shared `SiteSettings` (momo number, logo) editable from
-  `/django-admin/`.
+| Area | Features |
+|---|---|
+| Students | Sign up, browse and search courses, free preview lessons, pay, watch, download notes, quizzes, certificates (print / save as PDF), reviews, "My account" page |
+| Teachers | Add / edit / delete courses and lessons, upload video and PDF notes, build quizzes, see paying students and quiz results |
+| Admins | Dashboard (courses, paying students, revenue, pending payments), approve payments by hand, block students, edit site settings in `/django-admin/` |
+| Security | Videos and notes live outside any public URL and are served only through permission-checked views (with HTTP Range support for seeking); expired or unpaid access is refused on every request; blocked users are logged out immediately |
+| Mobile | Installable PWA, offline page, "Download for offline" per lesson |
 
-## The security trick you asked about
-
-Lesson videos and notes are stored in `PROTECTED_MEDIA_ROOT` (`protected_media/`), which
-is **never** wired into a public URL (see `onlineschool/urls.py` — only `MEDIA_ROOT` is
-served). The only way to read a lesson file is `courses/views.stream_video` /
-`download_notes`, which call `_has_access(user, lesson)` on every single request before
-opening the file. `stream_video` also implements HTTP Range requests by hand, so the
-`<video>` tag can seek — a plain `FileResponse` would work but breaks seeking on long
-videos.
-
-## Local setup
+## Run it on your computer
 
 ```bash
 python -m venv .venv
-.venv\Scripts\activate          # Windows
+.venv\Scripts\activate            # Windows
 pip install -r requirements.txt
-
-copy .env.example .env          # then edit .env: set a real SECRET_KEY
-
+copy .env.example .env            # then set a real SECRET_KEY
 python manage.py migrate
-python manage.py createsuperuser   # this account is full admin regardless of `role`
+python manage.py createsuperuser  # a superuser is a full admin
 python manage.py runserver
+python manage.py test core        # 49 tests covering every flow
 ```
 
-Visit `http://127.0.0.1:8000/`. Log into `/django-admin/` with your superuser to:
+## Payments (Pesapal)
 
-- Edit **Site settings** (momo number shown in the footer, site name, logo).
-- Add a **Course** (title, price, `access_days` — leave blank for lifetime, or e.g. `30`
-  for "monthly access", `90` for "full term") and its **Lessons** inline (upload a video
-  file and/or notes PDF right there, or use the nicer "Add Course" / "Manage Lessons"
-  pages once logged in as admin/teacher on the site itself).
-- Create **Teacher** accounts (students self-register at `/accounts/register/`; teacher
-  accounts are created by you, either in `/django-admin/` by setting `role=teacher`, or
-  by making a normal account then editing its role).
-- Mark one lesson per course `free_preview=True` if you want a free taste before paying.
+1. Create a merchant account at https://developer.pesapal.com (sandbox first).
+2. Put `PESAPAL_CONSUMER_KEY` and `PESAPAL_CONSUMER_SECRET` in `.env`.
+3. Pesapal must reach your site over public HTTPS. Locally use an ngrok tunnel and set `SITE_URL`.
+4. Run `python manage.py register_ipn` once and copy the printed id into `PESAPAL_IPN_ID`.
+5. For real money set `PESAPAL_ENV=live` with your live keys and re-run step 4.
 
-## Wiring up Pesapal (MTN MoMo / Airtel / Visa / Mastercard)
+If a student pays informally, an admin can approve the payment from the Payments page.
 
-1. Create a merchant account at https://developer.pesapal.com and grab your **sandbox**
-   consumer key + secret first (test with fake money before going live).
-2. Put them in `.env`:
+## Deploy on Vercel + Supabase
+
+Vercel runs the site; Supabase Postgres stores the data.
+
+1. Supabase: Connect, then **Transaction pooler** string (port `6543`). Use a password with
+   letters and numbers only.
+2. Create the tables once from your computer:
    ```
-   PESAPAL_ENV=sandbox
-   PESAPAL_CONSUMER_KEY=...
-   PESAPAL_CONSUMER_SECRET=...
+   set DATABASE_URL=postgresql://postgres.<ref>:<password>@<pooler-host>:5432/postgres
+   python manage.py migrate
+   python manage.py createsuperuser
    ```
-3. Pesapal needs a **publicly reachable** URL to send payment notifications to — your
-   laptop's `127.0.0.1` doesn't count. For local testing, run an ngrok tunnel:
-   ```bash
-   ngrok http 8000
-   ```
-   Copy the `https://...ngrok-free.app` URL into `.env` as `SITE_URL`.
-4. Register your IPN endpoint (one-time, run again if the URL ever changes):
-   ```bash
-   python manage.py register_ipn
-   ```
-   Copy the printed `ipn_id` into `.env` as `PESAPAL_IPN_ID`, then restart the server.
-5. Add a phone number to your test student account (via `/django-admin/` for now — a
-   "my account" page to self-edit phone is a natural next feature to add), then go
-   through Course → Checkout → "Pay with MTN MoMo / Airtel Money / Card". Pesapal's
-   sandbox lets you simulate a successful or failed mobile money payment.
-6. When you're ready to charge real money: set `PESAPAL_ENV=live`, swap in your live
-   consumer key/secret, re-run `register_ipn` against your real domain, and update
-   `SITE_URL`.
+3. In Vercel, Settings, Environment Variables:
+   `DATABASE_URL` (same string but port `6543`), `SECRET_KEY` (long random text), `DEBUG=False`.
+   Add the `PESAPAL_*` and `SITE_URL` values when you take payments.
+4. Deploy this repo, and **redeploy after changing any variable**.
+5. Open `/healthz/` on your site. It names the problem in one line
+   (`DATABASE_URL_NOT_SET`, `DB_PASSWORD_WRONG`, `TABLES_MISSING`, `DB_UNREACHABLE`, or `ok`).
 
-If a student pays you informally (sends momo directly and messages you), an admin can
-also **manually approve** a pending payment from the "Payments" page in the site nav —
-that flips `is_paid` the same way a real Pesapal callback would.
+### Limits on Vercel
 
-## Going live (selling this to a school)
-
-- Switch `DATABASES` in `onlineschool/settings.py` from SQLite to Postgres/MySQL for
-  anything beyond a single-school pilot.
-- Set `DEBUG=False`, fill in `ALLOWED_HOSTS`, and serve `protected_media/` and
-  `media/` from disk on the server that runs Django (not from a separate static host —
-  the whole point is that only Django's permission-checked views can read
-  `protected_media/`).
-- Run behind gunicorn/uwsgi + nginx, or a PaaS that supports a persistent Python
-  process (this is the tradeoff you accepted picking Django over plain PHP — it needs
-  a real app server, not bargain-bin shared hosting).
-- Back up `db.sqlite3` (or your Postgres DB) and `protected_media/` together — losing
-  either one independently corrupts the "who paid for what" picture.
+Vercel has no permanent disk, so uploaded videos, notes, thumbnails and logos cannot be saved
+there (the upload pages show a clear message instead of crashing), and a function cannot stream
+large video anyway. Vercel is fine for the pages, sign-in, courses and payments. For paid video
+online use a host with a disk (Railway, Render, a VPS) or move video to cloud storage such as
+Cloudflare R2 or Supabase Storage.
 
 ## Pricing model
 
-`Course.price` is per-course. `Course.access_days` makes it time-boxed:
+`Course.price` is per course; `Course.access_days` makes access time-limited.
 
-| What you called it | How to set it up |
+| Plan | Setup |
 |---|---|
-| 1 course = 30k | price=30000, access_days=blank (lifetime) |
-| Full term = 150k | make a bundle "course" per term at price=150000, access_days=90 |
-| Monthly access = 50k | price=50000, access_days=30 |
+| One course | price = 30000, access days blank (lifetime) |
+| Full term | price = 150000, access days = 90 |
+| Monthly | price = 50000, access days = 30 |
+| Free course | price = 0 (students are enrolled directly) |
 
-## Not built yet (natural next steps)
+## Not built yet
 
-- A student "edit my phone number" page (right now that's admin-only via
-  `/django-admin/`; the checkout view intentionally blocks payment without a phone
-  number, since Pesapal needs one).
-- Course search/filter and category tagging, if your catalog grows past a browsable
-  single page.
-- Automatic certificate PDF download (right now `certificates/certificate.html` is a
-  print-friendly page, not a generated PDF file).
+- Cloud file storage (needed for uploads on Vercel; see above).
+- Password reset by email (needs an email provider).
+- A public "apply to teach" form. Teacher accounts are created by an admin by setting the
+  user's role to `teacher` in `/django-admin/`.

@@ -3,7 +3,10 @@
 <div class="row">
   <div class="col-md-7">
     <div class="card p-4">
-      <h1 class="mb-4">Add a lesson to "{{ course.title }}"</h1>
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <h1 class="mb-0">Add a lesson to "{{ course.title }}"</h1>
+        <a href="{% url 'courses:edit_course' course.id %}" class="btn btn-sm btn-outline-teal">Edit course</a>
+      </div>
       <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form.non_field_errors }}
@@ -25,7 +28,12 @@
       {% for lesson in lessons %}
         <li class="list-group-item d-flex justify-content-between align-items-center">
           <span>{{ lesson.order }}. {{ lesson.title }}{% if lesson.free_preview %} <span class="badge bg-secondary">preview</span>{% endif %}</span>
-          <a href="{% url 'quizzes:manage' lesson.id %}" class="btn btn-sm btn-outline-teal">{% if lesson.quiz %}Edit quiz{% else %}Add quiz{% endif %}</a>
+          <span class="d-flex gap-1">
+            <a href="{% url 'quizzes:manage' lesson.id %}" class="btn btn-sm btn-outline-teal">{% if lesson.quiz %}Edit quiz{% else %}Add quiz{% endif %}</a>
+            <form method="post" action="{% url 'courses:delete_lesson' lesson.id %}" onsubmit="return confirm('Delete this lesson?');">
+              {% csrf_token %}<button class="btn btn-sm btn-outline-danger">Delete</button>
+            </form>
+          </span>
         </li>
       {% empty %}
         <li class="list-group-item text-muted">None yet.</li>

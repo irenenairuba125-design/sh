@@ -188,7 +188,14 @@
 {% endif %}
 
 <section id="courses" class="mb-5">
-  <h2 class="section-title mb-4">{% if selected_category %}Courses in this track{% else %}Latest courses{% endif %}</h2>
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <h2 class="section-title mb-0">{% if query %}Results for "{{ query }}"{% elif selected_category %}Courses in this track{% else %}Latest courses{% endif %}</h2>
+    <form method="get" action="{% url 'core:home' %}#courses" class="d-flex gap-2" role="search">
+      {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+      <input type="search" name="q" value="{{ query }}" class="form-control" placeholder="Search courses" aria-label="Search courses" style="min-width:220px;">
+      <button class="btn btn-teal">Search</button>
+    </form>
+  </div>
   <div class="row g-4">
     {% for course in courses %}
     <div class="col-md-4">
@@ -219,7 +226,7 @@
       </div>
     </div>
     {% empty %}
-    <div class="section-tint text-center"><p class="text-muted mb-0">No courses in this track yet. Check back soon.</p></div>
+    <div class="section-tint text-center"><p class="text-muted mb-0">{% if query %}No courses match "{{ query }}".{% else %}No courses in this track yet. Check back soon.{% endif %}</p></div>
     {% endfor %}
   </div>
 </section>

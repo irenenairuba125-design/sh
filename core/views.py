@@ -1,6 +1,7 @@
 import os
 
 from django.conf import settings
+from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.templatetags.static import static
@@ -16,6 +17,9 @@ def home(request):
     selected_category = request.GET.get('category', '')
     if selected_category:
         courses = courses.filter(category=selected_category)
+    query = request.GET.get('q', '').strip()[:100]
+    if query:
+        courses = courses.filter(Q(title__icontains=query) | Q(description__icontains=query))
     courses = courses.order_by('-created_at')
 
     category_counts = [
@@ -38,6 +42,7 @@ def home(request):
         'courses': courses,
         'category_counts': category_counts,
         'selected_category': selected_category,
+        'query': query,
         'spotlight': spotlight,
     })
 

@@ -5,11 +5,18 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import FileResponse, Http404, HttpResponseForbidden, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from accounts.decorators import role_required
 from payments.models import Enrollment, Payment
+from quizzes.models import QuizAttempt
 from .forms import CourseForm, LessonForm
 from .models import Course, Lesson
+
+STORAGE_UNAVAILABLE = (
+    "This server has no permanent disk, so files (videos, notes, thumbnails) cannot be saved here. "
+    "Upload files from a server with storage, or connect cloud file storage."
+)
 
 RANGE_RE = re.compile(r'bytes\s*=\s*(\d+)\s*-\s*(\d*)', re.IGNORECASE)
 
@@ -141,9 +148,13 @@ def add_course(request):
             course = form.save(commit=False)
             if request.user.role == 'teacher':
                 course.teacher = request.user
-            course.save()
-            messages.success(request, 'Course created. Now add its first lesson.')
-            return redirect('courses:upload_lesson', course_id=course.id)
+            try:
+                course.save()
+            except OSError:
+                messages.error(request, STORAGE_UNAVAILABLE)
+            else:
+                messages.success(request, 'Course created. Now add its first lesson.')
+                return redirect('courses:upload_lesson', course_id=course.id)
     else:
         form = CourseForm()
         if request.user.role == 'teacher':
@@ -162,9 +173,13 @@ def upload_lesson(request, course_id):
         if form.is_valid():
             lesson = form.save(commit=False)
             lesson.course = course
-            lesson.save()
-            messages.success(request, 'Lesson uploaded.')
-            return redirect('courses:upload_lesson', course_id=course.id)
+            try:
+                lesson.save()
+            except OSError:
+                messages.error(request, STORAGE_UNAVAILABLE)
+            else:
+                messages.success(request, 'Lesson uploaded.')
+                return redirect('courses:upload_lesson', course_id=course.id)
     else:
         form = LessonForm()
 
@@ -177,9 +192,14 @@ def upload_lesson(request, course_id):
 def teacher_dashboard(request):
     courses = Course.objects.filter(teacher=request.user)
     enrollments = Enrollment.objects.filter(course__in=courses, is_paid=True).select_related('user', 'course')
+    attempts = (
+        QuizAttempt.objects.filter(quiz__lesson__course__in=courses)
+        .select_related('user', 'quiz__lesson__course').order_by('-attempted_at')[:25]
+    )
     return render(request, 'courses/teacher_dashboard.html', {
         'courses': courses,
         'enrollments': enrollments,
+        'attempts': attempts,
     })
 
 
@@ -196,3 +216,56 @@ def admin_dashboard(request):
         'pending_payments': pending_payments,
         'courses': Course.objects.all(),
     })
+
+
+def _is_plain_teacher(user):
+    return user.role == 'teacher' and not user.is_superuser
+
+
+@role_required('admin', 'teacher')
+def edit_course(request, course_id):
+    course = get_object_or_404(Course, pk=course_id)
+    if _is_plain_teacher(request.user) and course.teacher_id != request.user.id:
+        return HttpResponseForbidden("You do not own this course.")
+
+    if request.method == 'POST':
+        form = CourseForm(request.POST, request.FILES, instance=course)
+        if _is_plain_teacher(request.user):
+            form.fields.pop('teacher', None)
+        if form.is_valid():
+            try:
+                form.save()
+            except OSError:
+                messages.error(request, STORAGE_UNAVAILABLE)
+            else:
+                messages.success(request, 'Course updated.')
+                return redirect('courses:upload_lesson', course_id=course.id)
+    else:
+        form = CourseForm(instance=course)
+        if _is_plain_teacher(request.user):
+            form.fields.pop('teacher', None)
+    return render(request, 'courses/add_course.html', {'form': form, 'editing': course})
+
+
+@role_required('admin', 'teacher')
+@require_POST
+def delete_course(request, course_id):
+    course = get_object_or_404(Course, pk=course_id)
+    if _is_plain_teacher(request.user) and course.teacher_id != request.user.id:
+        return HttpResponseForbidden("You do not own this course.")
+    title = course.title
+    course.delete()
+    messages.success(request, 'Deleted "%s".' % title)
+    return redirect('courses:teacher_dashboard' if _is_plain_teacher(request.user) else 'courses:admin_dashboard')
+
+
+@role_required('admin', 'teacher')
+@require_POST
+def delete_lesson(request, lesson_id):
+    lesson = get_object_or_404(Lesson, pk=lesson_id)
+    if _is_plain_teacher(request.user) and lesson.course.teacher_id != request.user.id:
+        return HttpResponseForbidden("You do not own this course.")
+    course_id = lesson.course_id
+    lesson.delete()
+    messages.success(request, 'Lesson deleted.')
+    return redirect('courses:upload_lesson', course_id=course_id)
