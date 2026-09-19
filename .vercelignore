@@ -1,0 +1,8 @@
+.venv
+.env
+db.sqlite3
+media
+protected_media
+server.log
+__pycache__
+.git
