@@ -92,7 +92,7 @@ def healthz(request):
 
     vendor = connection.vendor
     status = 'ok'
-    if vendor == 'sqlite' and not settings.DEBUG:
+    if vendor == 'sqlite' and (not settings.DEBUG or os.environ.get('VERCEL')):
         status = 'DATABASE_URL_NOT_SET (using sqlite, which cannot work on Vercel)'
     else:
         try:

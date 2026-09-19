@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
@@ -8,7 +9,8 @@ from django.core.exceptions import ImproperlyConfigured
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY', default='dev-insecure-secret-key-change-me')
-DEBUG = config('DEBUG', default=True, cast=bool)
+# Vercel sets VERCEL=1 automatically; never run with debug pages on there.
+DEBUG = config('DEBUG', default=not os.environ.get('VERCEL'), cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost,.vercel.app', cast=Csv())
 CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='https://*.vercel.app', cast=Csv())
 # Vercel terminates HTTPS in front of Django
