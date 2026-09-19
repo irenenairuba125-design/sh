@@ -65,9 +65,11 @@ def course_detail(request, pk):
 def my_learning(request):
     enrollments = Enrollment.objects.filter(user=request.user, is_paid=True).select_related('course')
     certificates = request.user.certificates.select_related('course').all()
+    pending = Payment.objects.filter(user=request.user, status=Payment.Status.PENDING).exclude(momo_code='').select_related('course')
     return render(request, 'courses/my_learning.html', {
         'enrollments': enrollments,
         'certificates': certificates,
+        'pending': pending,
     })
 
 

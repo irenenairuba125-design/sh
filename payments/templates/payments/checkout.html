@@ -2,20 +2,65 @@
 {% block content %}
 <div class="section-tint">
 <div class="row justify-content-center">
-  <div class="col-md-6">
-    <div class="card p-4 text-center">
-      <div class="icon-chip mx-auto mb-3" style="background:linear-gradient(135deg, var(--teal), var(--teal-dark));">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+  <div class="col-lg-7">
+    <div class="card p-4">
+      <div class="text-center">
+        <div class="icon-chip mx-auto mb-3" style="background:linear-gradient(135deg, var(--teal), var(--teal-dark));">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+        </div>
+        <h1 class="mb-2">Checkout</h1>
+        <p class="mb-1 text-muted">You're about to pay</p>
+        <div class="badge-price fs-3 mb-2 d-inline-block">UGX {{ course.price|floatformat:"0g" }}</div>
+        <p class="text-muted mb-4">for <strong>{{ course.title }}</strong></p>
       </div>
-      <h1 class="mb-3">Checkout</h1>
-      <p class="mb-1 text-muted">You're about to pay</p>
-      <div class="badge-price fs-3 mb-3 d-inline-block">UGX {{ course.price|floatformat:"0g" }}</div>
-      <p class="text-muted mb-4">for <strong>{{ course.title }}</strong></p>
-      <form method="post">
-        {% csrf_token %}
-        <button class="btn btn-teal btn-lg w-100">Pay with MTN MoMo / Airtel Money / Card</button>
-      </form>
-      <p class="small text-muted mt-3">You'll be redirected to Pesapal's secure payment page.</p>
+
+      {% if pending %}
+        <div class="alert alert-warning">
+          We received your payment report (transaction <strong>{{ pending.momo_code }}</strong>) and are confirming it.
+          The course unlocks as soon as it is verified.
+        </div>
+      {% endif %}
+
+      {% if pesapal_enabled %}
+        <form method="post" class="mb-3">
+          {% csrf_token %}
+          <button class="btn btn-teal btn-lg w-100">Pay online with MTN MoMo / Airtel Money / Card</button>
+          <p class="small text-muted text-center mt-2 mb-0">You'll be taken to Pesapal's secure payment page and unlocked automatically.</p>
+        </form>
+      {% endif %}
+
+      {% if momo_number %}
+        {% if pesapal_enabled %}<div class="text-center text-muted small my-3">or pay manually</div>{% endif %}
+        <div class="p-3 mb-3" style="background:var(--bg-soft);border-radius:14px;">
+          <div class="fw-bold mb-2">Pay by mobile money</div>
+          <ol class="mb-0 ps-3 small">
+            <li>Send <strong>UGX {{ course.price|floatformat:"0g" }}</strong> by MTN MoMo or Airtel Money to <strong style="font-size:1.05rem;">{{ momo_number }}</strong>.</li>
+            <li>Copy the <strong>transaction ID</strong> from the confirmation SMS.</li>
+            <li>Enter it below. We verify it and unlock your course.</li>
+          </ol>
+        </div>
+        <form method="post" action="{% url 'payments:manual' course.id %}">
+          {% csrf_token %}
+          <div class="row g-2 mb-2">
+            <div class="col-sm-5">
+              <label class="form-label small mb-1" for="method">I paid with</label>
+              <select name="method" id="method" class="form-select">
+                <option value="mtn">MTN MoMo</option>
+                <option value="airtel">Airtel Money</option>
+              </select>
+            </div>
+            <div class="col-sm-7">
+              <label class="form-label small mb-1" for="payer_phone">Phone I paid from</label>
+              <input type="tel" name="payer_phone" id="payer_phone" class="form-control" value="{{ user.phone }}" placeholder="0771234567" required>
+            </div>
+          </div>
+          <label class="form-label small mb-1" for="transaction_id">Transaction ID</label>
+          <input type="text" name="transaction_id" id="transaction_id" class="form-control mb-3" placeholder="e.g. 12345678901" autocomplete="off" required>
+          <button class="btn {% if pesapal_enabled %}btn-outline-teal{% else %}btn-teal btn-lg{% endif %} w-100">I have paid &mdash; confirm my payment</button>
+        </form>
+      {% elif not pesapal_enabled %}
+        <div class="alert alert-secondary mb-0">Payments are not switched on yet. Please contact the school to enrol.</div>
+      {% endif %}
     </div>
   </div>
 </div>

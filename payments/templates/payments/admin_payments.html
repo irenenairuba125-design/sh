@@ -2,7 +2,7 @@
 {% block content %}
 <h1 class="mb-4">Payments</h1>
 <div class="table-responsive"><table class="table align-middle">
-  <thead><tr><th>Student</th><th>Course</th><th>Amount</th><th>Method</th><th>Status</th><th>Date</th><th></th></tr></thead>
+  <thead><tr><th>Student</th><th>Course</th><th>Amount</th><th>Method</th><th>Transaction ID / paid from</th><th>Status</th><th>Date</th><th></th></tr></thead>
   <tbody>
     {% for p in payments %}
       <tr>
@@ -10,6 +10,7 @@
         <td>{{ p.course.title }}</td>
         <td>UGX {{ p.amount|floatformat:"0g" }}</td>
         <td>{{ p.get_method_display }}</td>
+        <td class="small">{% if p.momo_code %}<strong>{{ p.momo_code }}</strong>{% else %}-{% endif %}{% if p.payer_phone %}<br><span class="text-muted">{{ p.payer_phone }}</span>{% endif %}</td>
         <td>
           <span class="badge {% if p.status == 'success' %}bg-success{% elif p.status == 'failed' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
             {{ p.get_status_display }}
@@ -20,13 +21,19 @@
           {% if p.status != 'success' %}
             <form method="post" action="{% url 'payments:approve_payment' p.id %}" class="d-inline">
               {% csrf_token %}
-              <button class="btn btn-sm btn-outline-teal">Approve manually</button>
+              <button class="btn btn-sm btn-teal">Approve</button>
             </form>
+            {% if p.status == 'pending' %}
+            <form method="post" action="{% url 'payments:reject_payment' p.id %}" class="d-inline">
+              {% csrf_token %}
+              <button class="btn btn-sm btn-outline-danger">Reject</button>
+            </form>
+            {% endif %}
           {% endif %}
         </td>
       </tr>
     {% empty %}
-      <tr><td colspan="7" class="text-muted">No payments yet.</td></tr>
+      <tr><td colspan="8" class="text-muted">No payments yet.</td></tr>
     {% endfor %}
   </tbody>
 </table></div>

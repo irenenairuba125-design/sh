@@ -1,6 +1,8 @@
+import re
 import uuid
 from datetime import timedelta
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -10,9 +12,14 @@ from django.urls import reverse
 from django.utils import timezone
 
 from accounts.decorators import role_required
+from core.models import SiteSettings
 from courses.models import Course
 from .models import Enrollment, Payment
 from .services import pesapal
+
+
+def pesapal_configured():
+    return bool(settings.PESAPAL_CONSUMER_KEY and settings.PESAPAL_CONSUMER_SECRET and settings.PESAPAL_IPN_ID)
 
 
 @login_required
@@ -29,12 +36,21 @@ def checkout(request, course_id):
         return redirect('accounts:profile')
 
     if request.method != 'POST':
-        return render(request, 'payments/checkout.html', {'course': course})
+        return render(request, 'payments/checkout.html', {
+            'course': course,
+            'pesapal_enabled': pesapal_configured(),
+            'momo_number': SiteSettings.load().momo_number,
+            'pending': Payment.objects.filter(user=request.user, course=course, status=Payment.Status.PENDING).exclude(momo_code='').first(),
+        })
 
     if course.price <= 0:
         _grant_access(Payment(user=request.user, course=course))
         messages.success(request, 'You are enrolled in this free course.')
         return redirect('courses:course_detail', pk=course.id)
+
+    if not pesapal_configured():
+        messages.error(request, 'Online payment is not switched on yet. Please use the manual mobile-money option.')
+        return redirect('payments:checkout', course_id=course.id)
 
     payment = Payment.objects.create(
         user=request.user,
@@ -102,6 +118,45 @@ def _grant_access(payment):
 
 
 @login_required
+@require_POST
+def manual_payment(request, course_id):
+    """Student sent money to the school's MTN/Airtel number and reports the transaction ID.
+    The course stays locked until an admin approves it on the Payments page."""
+    course = get_object_or_404(Course, pk=course_id, is_published=True)
+    back = redirect('payments:checkout', course_id=course.id)
+
+    existing = Enrollment.objects.filter(user=request.user, course=course).first()
+    if existing and existing.is_active():
+        return redirect('courses:course_detail', pk=course.id)
+    if not SiteSettings.load().momo_number:
+        messages.error(request, 'Manual payment is not set up yet. Please contact the school.')
+        return back
+
+    method = request.POST.get('method')
+    if method not in (Payment.Method.MTN, Payment.Method.AIRTEL):
+        method = Payment.Method.OTHER
+    transaction_id = re.sub(r'\s+', '', request.POST.get('transaction_id', '')).upper()
+    payer_phone = re.sub(r'[^0-9+]', '', request.POST.get('payer_phone', ''))[:20]
+
+    if not re.fullmatch(r'[A-Z0-9]{6,40}', transaction_id):
+        messages.error(request, 'Enter the transaction ID from your mobile-money confirmation message (letters and numbers only).')
+        return back
+    if len(payer_phone) < 9:
+        messages.error(request, 'Enter the phone number you paid from.')
+        return back
+    if Payment.objects.filter(momo_code=transaction_id).exclude(status=Payment.Status.FAILED).exists():
+        messages.error(request, 'That transaction ID has already been used.')
+        return back
+
+    Payment.objects.create(
+        user=request.user, course=course, amount=course.price, method=method,
+        merchant_reference=str(uuid.uuid4()), momo_code=transaction_id, payer_phone=payer_phone,
+    )
+    messages.success(request, 'Thank you. We are confirming your payment and will unlock the course as soon as it is verified.')
+    return redirect('courses:course_detail', pk=course.id)
+
+
+@login_required
 def payment_callback(request):
     """The student's browser lands here after Pesapal's hosted payment page."""
     order_tracking_id = request.GET.get('OrderTrackingId')
@@ -139,7 +194,10 @@ def payment_ipn(request):
 
 @role_required('admin')
 def admin_payments(request):
-    payments = Payment.objects.select_related('user', 'course').order_by('-created_at')
+    payments = sorted(
+        Payment.objects.select_related('user', 'course'),
+        key=lambda p: (p.status != Payment.Status.PENDING or not p.momo_code, -p.created_at.timestamp()),
+    )
     return render(request, 'payments/admin_payments.html', {'payments': payments})
 
 
@@ -153,4 +211,17 @@ def approve_payment(request, payment_id):
     payment.save()
     _grant_access(payment)
     messages.success(request, f'Payment approved. {payment.user} now has access to {payment.course}.')
+    return redirect('payments:admin_payments')
+
+
+@role_required('admin')
+@require_POST
+def reject_payment(request, payment_id):
+    payment = get_object_or_404(Payment, pk=payment_id)
+    if payment.status != Payment.Status.SUCCESS:
+        payment.status = Payment.Status.FAILED
+        payment.save()
+        messages.success(request, 'Payment rejected.')
+    else:
+        messages.error(request, 'That payment was already approved.')
     return redirect('payments:admin_payments')

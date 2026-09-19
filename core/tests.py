@@ -152,6 +152,7 @@ class Streaming(Base):
 PESAPAL_OK = {'order_tracking_id': 'trk-1', 'redirect_url': 'https://pay.example/redirect'}
 
 
+@override_settings(PESAPAL_CONSUMER_KEY='k', PESAPAL_CONSUMER_SECRET='s', PESAPAL_IPN_ID='i')
 class Payments(Base):
     def test_checkout_requires_login_and_phone(self):
         url = reverse('payments:checkout', args=[self.course.id])

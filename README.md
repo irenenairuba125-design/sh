@@ -28,7 +28,18 @@ python manage.py runserver
 python manage.py test core        # 49 tests covering every flow
 ```
 
-## Payments (Pesapal)
+## Payments
+
+**Manual mobile money (works with no setup keys).** In `/django-admin/`, open Site settings and
+enter your MTN / Airtel number. At checkout students see the number, send the money, and
+enter the transaction ID from their confirmation SMS. The payment appears at the top of the
+Payments page (admin menu) with the ID and phone; check it against your MoMo statement and press
+**Approve** (unlocks the course) or **Reject**. Each transaction ID can only be used once.
+
+**Automatic (Pesapal).** When the three `PESAPAL_*` values below are set, an online button
+appears at checkout as well.
+
+### Pesapal setup
 
 1. Create a merchant account at https://developer.pesapal.com (sandbox first).
 2. Put `PESAPAL_CONSUMER_KEY` and `PESAPAL_CONSUMER_SECRET` in `.env`.

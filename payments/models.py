@@ -45,7 +45,8 @@ class Payment(models.Model):
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
     merchant_reference = models.CharField(max_length=64, unique=True)
     pesapal_order_tracking_id = models.CharField(max_length=100, blank=True)
-    momo_code = models.CharField(max_length=100, blank=True, help_text='Confirmation code returned by Pesapal')
+    momo_code = models.CharField(max_length=100, blank=True, help_text='Mobile-money transaction ID (or Pesapal confirmation code)')
+    payer_phone = models.CharField(max_length=20, blank=True, help_text='Phone the student paid from (manual payments)')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
