@@ -1,3 +1,4 @@
+import hashlib
 import os
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
@@ -8,7 +9,16 @@ from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = config('SECRET_KEY', default='dev-insecure-secret-key-change-me')
+_DEV_KEY = 'dev-insecure-secret-key-change-me'
+SECRET_KEY = config('SECRET_KEY', default=_DEV_KEY).strip().strip('"').strip("'").strip()
+if not SECRET_KEY or SECRET_KEY == _DEV_KEY:
+    # A missing/empty key must never crash the site, and the dev default is public (it is in
+    # the repo). When a database URL is configured, derive a private key from it instead.
+    _db_for_key = config('DATABASE_URL', default='')
+    if _db_for_key:
+        SECRET_KEY = hashlib.sha256(('qiora-secret-key|' + _db_for_key).encode()).hexdigest()
+    else:
+        SECRET_KEY = _DEV_KEY
 # Vercel sets VERCEL=1 automatically; never run with debug pages on there.
 DEBUG = config('DEBUG', default=not os.environ.get('VERCEL'), cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost,.vercel.app', cast=Csv())
