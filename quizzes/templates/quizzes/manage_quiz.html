@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block content %}
+<a href="{% url 'courses:upload_lesson' lesson.course_id %}" class="small">&larr; Back to lessons</a>
+<h1 class="mb-1 mt-2">Quiz for "{{ lesson.title }}"</h1>
+<p class="text-muted">Students who pass any quiz in a course earn its certificate.</p>
+
+<div class="row g-4">
+  <div class="col-md-5">
+    <div class="card p-4 mb-4">
+      <h5>{% if quiz %}Quiz settings{% else %}Create the quiz{% endif %}</h5>
+      <form method="post">
+        {% csrf_token %}<input type="hidden" name="action" value="quiz">
+        {{ quiz_form.non_field_errors }}
+        {% for field in quiz_form %}
+          <div class="mb-3"><label class="form-label">{{ field.label }}</label>{{ field }}{{ field.errors }}</div>
+        {% endfor %}
+        <button class="btn btn-teal">Save quiz</button>
+      </form>
+    </div>
+
+    {% if quiz %}
+    <div class="card p-4">
+      <h5>Add a question</h5>
+      <form method="post">
+        {% csrf_token %}<input type="hidden" name="action" value="question">
+        {{ question_form.non_field_errors }}
+        {% for field in question_form %}
+          <div class="mb-2"><label class="form-label small">{{ field.label }}</label>{{ field }}{{ field.errors }}</div>
+        {% endfor %}
+        <button class="btn btn-teal mt-2">Add question</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="col-md-7">
+    <h5>Questions ({{ questions|length }})</h5>
+    {% for q in questions %}
+      <div class="card p-3 mb-2">
+        <div class="d-flex justify-content-between gap-3">
+          <div>
+            <div class="fw-semibold">{{ forloop.counter }}. {{ q.text }}</div>
+            <div class="small text-muted mt-1">
+              A. {{ q.choice_a }} &middot; B. {{ q.choice_b }}{% if q.choice_c %} &middot; C. {{ q.choice_c }}{% endif %}{% if q.choice_d %} &middot; D. {{ q.choice_d }}{% endif %}
+            </div>
+            <div class="small mt-1" style="color:var(--teal-dark);">Correct: {{ q.get_correct_choice_display }}</div>
+          </div>
+          <form method="post">
+            {% csrf_token %}<input type="hidden" name="action" value="delete_question"><input type="hidden" name="question_id" value="{{ q.id }}">
+            <button class="btn btn-sm btn-outline-danger">Delete</button>
+          </form>
+        </div>
+      </div>
+    {% empty %}
+      <p class="text-muted">{% if quiz %}No questions yet. Add the first one.{% else %}Create the quiz first, then add questions.{% endif %}</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

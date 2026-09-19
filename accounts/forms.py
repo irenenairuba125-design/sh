@@ -23,6 +23,20 @@ class RegisterForm(UserCreationForm):
             field.widget.attrs['class'] = 'form-control'
 
 
+class ProfileForm(forms.ModelForm):
+    phone = forms.CharField(max_length=20, required=True, help_text='Used for MTN MoMo / Airtel Money payments, e.g. 0771234567')
+    email = forms.EmailField(required=True)
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email', 'phone']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form-control'
+
+
 class LoginForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

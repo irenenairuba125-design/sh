@@ -15,7 +15,7 @@
 <h2 class="mb-3">My Certificates</h2>
 <ul class="list-group">
   {% for cert in certificates %}
-    <li class="list-group-item">{{ cert.course.title }} &mdash; code <strong>{{ cert.certificate_code }}</strong></li>
+    <li class="list-group-item d-flex justify-content-between align-items-center"><span>{{ cert.course.title }} &mdash; code <strong>{{ cert.certificate_code }}</strong></span><a href="{% url 'certificates:verify' cert.certificate_code %}" class="btn btn-sm btn-outline-teal">View certificate</a></li>
   {% empty %}
     <li class="list-group-item text-muted">No certificates yet &mdash; pass a course quiz to earn one.</li>
   {% endfor %}

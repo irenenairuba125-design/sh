@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 from django.urls import reverse
 from django.utils import timezone
 
@@ -23,12 +24,17 @@ def checkout(request, course_id):
         messages.info(request, 'You already have access to this course.')
         return redirect('courses:course_detail', pk=course.id)
 
-    if not request.user.phone:
-        messages.error(request, 'Add a phone number to your account (in /django-admin/ for now) before paying with mobile money.')
-        return redirect('courses:course_detail', pk=course.id)
+    if course.price > 0 and not request.user.phone:
+        messages.error(request, 'Add your phone number to your account before paying with mobile money.')
+        return redirect('accounts:profile')
 
     if request.method != 'POST':
         return render(request, 'payments/checkout.html', {'course': course})
+
+    if course.price <= 0:
+        _grant_access(Payment(user=request.user, course=course))
+        messages.success(request, 'You are enrolled in this free course.')
+        return redirect('courses:course_detail', pk=course.id)
 
     payment = Payment.objects.create(
         user=request.user,
@@ -40,6 +46,9 @@ def checkout(request, course_id):
     try:
         result = pesapal.submit_order(payment, callback_url)
     except Exception:
+        result = {}
+
+    if not result.get('redirect_url'):
         payment.status = Payment.Status.FAILED
         payment.save(update_fields=['status'])
         messages.error(request, 'Could not reach the payment provider. Please try again shortly.')
@@ -97,7 +106,10 @@ def payment_callback(request):
     """The student's browser lands here after Pesapal's hosted payment page."""
     order_tracking_id = request.GET.get('OrderTrackingId')
     payment = get_object_or_404(Payment, pesapal_order_tracking_id=order_tracking_id, user=request.user)
-    payment = _finalize_payment(payment)
+    try:
+        payment = _finalize_payment(payment)
+    except Exception:
+        messages.warning(request, 'We could not confirm your payment yet. It will unlock automatically once confirmed.')
     return render(request, 'payments/payment_status.html', {'payment': payment})
 
 
@@ -112,7 +124,10 @@ def payment_ipn(request):
         if order_tracking_id and not payment.pesapal_order_tracking_id:
             payment.pesapal_order_tracking_id = order_tracking_id
             payment.save(update_fields=['pesapal_order_tracking_id'])
-        _finalize_payment(payment)
+        try:
+            _finalize_payment(payment)
+        except Exception:
+            pass  # still ack with 200; Pesapal will call again and the admin can approve manually
 
     return JsonResponse({
         'orderNotificationType': request.GET.get('OrderNotificationType', 'IPNCHANGE'),
@@ -129,6 +144,7 @@ def admin_payments(request):
 
 
 @role_required('admin')
+@require_POST
 def approve_payment(request, payment_id):
     """Manual fallback for when a student pays informally (e.g. sends money directly
     and messages you) rather than through the Pesapal flow above."""

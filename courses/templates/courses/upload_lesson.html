@@ -23,7 +23,10 @@
     <h5>Lessons so far</h5>
     <ul class="list-group">
       {% for lesson in lessons %}
-        <li class="list-group-item">{{ lesson.order }}. {{ lesson.title }}{% if lesson.free_preview %} <span class="badge bg-secondary">preview</span>{% endif %}</li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span>{{ lesson.order }}. {{ lesson.title }}{% if lesson.free_preview %} <span class="badge bg-secondary">preview</span>{% endif %}</span>
+          <a href="{% url 'quizzes:manage' lesson.id %}" class="btn btn-sm btn-outline-teal">{% if lesson.quiz %}Edit quiz{% else %}Add quiz{% endif %}</a>
+        </li>
       {% empty %}
         <li class="list-group-item text-muted">None yet.</li>
       {% endfor %}

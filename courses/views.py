@@ -18,14 +18,19 @@ def _has_access(user, lesson):
     """The single gate every locked-content view goes through. Free previews are open
     to everyone; otherwise you need to be the course's teacher, an admin/superuser, or
     have a paid, non-expired enrollment."""
+    is_staff_user = user.is_authenticated and (
+        user.is_superuser
+        or getattr(user, 'role', None) == 'admin'
+        or (getattr(user, 'role', None) == 'teacher' and lesson.course.teacher_id == user.id)
+    )
+    if is_staff_user:
+        return True
+    if not lesson.course.is_published:
+        return False
     if lesson.free_preview:
         return True
     if not user.is_authenticated:
         return False
-    if user.is_superuser or getattr(user, 'role', None) == 'admin':
-        return True
-    if getattr(user, 'role', None) == 'teacher' and lesson.course.teacher_id == user.id:
-        return True
     enrollment = Enrollment.objects.filter(user=user, course=lesson.course).first()
     return bool(enrollment and enrollment.is_active())
 

@@ -18,7 +18,10 @@
         <td>{{ p.created_at|date:'d M Y H:i' }}</td>
         <td>
           {% if p.status != 'success' %}
-            <a href="{% url 'payments:approve_payment' p.id %}" class="btn btn-sm btn-outline-teal">Approve manually</a>
+            <form method="post" action="{% url 'payments:approve_payment' p.id %}" class="d-inline">
+              {% csrf_token %}
+              <button class="btn btn-sm btn-outline-teal">Approve manually</button>
+            </form>
           {% endif %}
         </td>
       </tr>

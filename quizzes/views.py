@@ -1,10 +1,14 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 
+from accounts.decorators import role_required
 from certificates.utils import issue_certificate_if_passed
+from courses.models import Lesson
 from courses.views import _has_access
-from .models import Quiz, QuizAttempt
+from .forms import QuestionForm, QuizForm
+from .models import Question, Quiz, QuizAttempt
 
 
 @login_required
@@ -35,3 +39,41 @@ def take_quiz(request, quiz_id):
         })
 
     return render(request, 'quizzes/quiz.html', {'quiz': quiz, 'questions': questions})
+
+
+@role_required('admin', 'teacher')
+def manage_quiz(request, lesson_id):
+    lesson = get_object_or_404(Lesson, pk=lesson_id)
+    if request.user.role == 'teacher' and lesson.course.teacher_id != request.user.id:
+        return HttpResponseForbidden("You don't own this course.")
+
+    quiz = Quiz.objects.filter(lesson=lesson).first()
+    quiz_form = QuizForm(instance=quiz)
+    question_form = QuestionForm()
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'quiz':
+            quiz_form = QuizForm(request.POST, instance=quiz)
+            if quiz_form.is_valid():
+                saved = quiz_form.save(commit=False)
+                saved.lesson = lesson
+                saved.save()
+                messages.success(request, 'Quiz saved.')
+                return redirect('quizzes:manage', lesson_id=lesson.id)
+        elif action == 'question' and quiz:
+            question_form = QuestionForm(request.POST)
+            if question_form.is_valid():
+                question = question_form.save(commit=False)
+                question.quiz = quiz
+                question.save()
+                messages.success(request, 'Question added.')
+                return redirect('quizzes:manage', lesson_id=lesson.id)
+        elif action == 'delete_question' and quiz:
+            Question.objects.filter(pk=request.POST.get('question_id'), quiz=quiz).delete()
+            return redirect('quizzes:manage', lesson_id=lesson.id)
+
+    return render(request, 'quizzes/manage_quiz.html', {
+        'lesson': lesson, 'quiz': quiz, 'quiz_form': quiz_form, 'question_form': question_form,
+        'questions': quiz.questions.all() if quiz else [],
+    })

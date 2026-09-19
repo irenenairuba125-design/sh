@@ -16,10 +16,16 @@ def add_review(request, course_id):
         return redirect('courses:course_detail', pk=course.id)
 
     if request.method == 'POST':
-        rating = request.POST.get('rating')
-        comment = request.POST.get('comment', '')
+        try:
+            rating = int(request.POST.get('rating', ''))
+        except ValueError:
+            rating = 0
+        if not 1 <= rating <= 5:
+            messages.error(request, 'Please choose a rating from 1 to 5.')
+            return redirect('courses:course_detail', pk=course.id)
         Review.objects.update_or_create(
-            user=request.user, course=course, defaults={'rating': rating, 'comment': comment},
+            user=request.user, course=course,
+            defaults={'rating': rating, 'comment': request.POST.get('comment', '')[:2000]},
         )
         messages.success(request, 'Thanks for your review!')
 
