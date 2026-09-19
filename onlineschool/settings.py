@@ -1,7 +1,9 @@
 from pathlib import Path
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import dj_database_url
 from decouple import config, Csv
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -38,7 +40,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'accounts.middleware.BlockedUserMiddleware',
-    'accounts.middleware.BlockedUserMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -65,9 +66,31 @@ WSGI_APPLICATION = 'onlineschool.wsgi.application'
 
 # Local dev uses SQLite. On Vercel there is no persistent disk, so set DATABASE_URL to a
 # hosted Postgres (Neon, Supabase, ...) in the Vercel project's environment variables.
+def _clean_database_url(url):
+    """Tolerate what people paste from Supabase: surrounding quotes, and Prisma-only
+    options like ?pgbouncer=true that psycopg2 rejects."""
+    url = url.strip().strip('"').strip("'").strip()
+    parts = urlsplit(url)
+    prisma_only = {'pgbouncer', 'connection_limit', 'pool_timeout', 'schema'}
+    query = [(k, v) for k, v in parse_qsl(parts.query) if k.lower() not in prisma_only]
+    return urlunsplit(parts._replace(query=urlencode(query)))
+
+
 _database_url = config('DATABASE_URL', default='')
 if _database_url:
-    DATABASES = {'default': dj_database_url.parse(_database_url, conn_max_age=0, ssl_require=True)}
+    if '[YOUR-PASSWORD]' in _database_url or '[' in _database_url.split('@')[0]:
+        raise ImproperlyConfigured(
+            'DATABASE_URL still contains the [YOUR-PASSWORD] placeholder. '
+            'Replace it, including the square brackets, with your real database password.'
+        )
+    try:
+        _database_url = _clean_database_url(_database_url)
+        DATABASES = {'default': dj_database_url.parse(_database_url, conn_max_age=0, ssl_require=True)}
+    except Exception as exc:
+        raise ImproperlyConfigured(
+            'DATABASE_URL is not a valid Postgres URL. If your password contains symbols such as '
+            '@ # / : ? reset it to letters and numbers only. (%s)' % type(exc).__name__
+        ) from None
     # Required when connecting through Supabase's transaction pooler (port 6543).
     DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = True
 else:
@@ -112,10 +135,6 @@ from django.contrib.messages import constants as message_constants  # noqa: E402
 
 MESSAGE_TAGS = {message_constants.ERROR: 'danger'}
 
-from django.contrib.messages import constants as message_constants  # noqa: E402
-
-MESSAGE_TAGS = {message_constants.ERROR: 'danger'}
-
 LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'accounts:post_login'
 LOGOUT_REDIRECT_URL = 'core:home'
@@ -126,3 +145,11 @@ PESAPAL_CONSUMER_KEY = config('PESAPAL_CONSUMER_KEY', default='')
 PESAPAL_CONSUMER_SECRET = config('PESAPAL_CONSUMER_SECRET', default='')
 PESAPAL_IPN_ID = config('PESAPAL_IPN_ID', default='')
 SITE_URL = config('SITE_URL', default='http://127.0.0.1:8000')
+
+# Send request errors to stdout so they show up in Vercel's function logs.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {'console': {'class': 'logging.StreamHandler'}},
+    'loggers': {'django.request': {'handlers': ['console'], 'level': 'ERROR', 'propagate': False}},
+}
