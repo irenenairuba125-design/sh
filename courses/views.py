@@ -59,7 +59,6 @@ def my_learning(request):
     })
 
 
-@login_required
 def watch_lesson(request, lesson_id):
     lesson = get_object_or_404(Lesson, pk=lesson_id)
     if not _has_access(request.user, lesson):
@@ -68,7 +67,6 @@ def watch_lesson(request, lesson_id):
     return render(request, 'courses/video_player.html', {'lesson': lesson})
 
 
-@login_required
 def stream_video(request, lesson_id):
     """Streams the lesson video byte-range by byte-range, after checking access on every
     request. There is no public URL to the file itself (it lives outside MEDIA_ROOT in
@@ -115,7 +113,6 @@ def stream_video(request, lesson_id):
     return response
 
 
-@login_required
 def download_notes(request, lesson_id):
     lesson = get_object_or_404(Lesson, pk=lesson_id)
     if not lesson.notes_pdf:

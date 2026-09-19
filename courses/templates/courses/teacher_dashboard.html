@@ -10,8 +10,9 @@
   {% for course in courses %}
   <div class="col-md-4">
     <div class="card card-hover overflow-hidden h-100">
-      <div style="height:100px;background:{{ course.category|category_gradient }};display:flex;align-items:center;justify-content:center;">
-        <span style="width:32px;height:32px;color:rgba(255,255,255,0.9);">{% include "courses/_category_icon.html" with category=course.category %}</span>
+      <div style="height:110px;position:relative;background:url('{{ course.id|stock_photo }}') center/cover;">
+        <div style="position:absolute;inset:0;background:{{ course.category|category_gradient }};opacity:.72;"></div>
+        <span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:32px;height:32px;color:#fff;">{% include "courses/_category_icon.html" with category=course.category %}</span>
       </div>
       <div class="p-3">
         <h5>{{ course.title }}</h5>

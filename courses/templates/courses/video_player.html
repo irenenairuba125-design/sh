@@ -4,7 +4,7 @@
 <p class="text-muted">{{ lesson.course.title }}</p>
 
 {% if lesson.video_file %}
-<video width="100%" style="max-height:70vh;background:#000;border-radius:12px;" controls controlsList="nodownload" oncontextmenu="return false;">
+<video id="lesson-video" width="100%" style="max-height:70vh;background:#000;border-radius:12px;" controls controlsList="nodownload" oncontextmenu="return false;">
   <source src="{% url 'courses:stream_video' lesson.id %}" type="video/mp4">
   Your browser does not support video playback.
 </video>
@@ -12,7 +12,12 @@
 <div class="alert alert-secondary">No video uploaded for this lesson yet.</div>
 {% endif %}
 
-<div class="mt-3 d-flex gap-2">
+<div class="mt-3 d-flex gap-2 flex-wrap">
+  {% if lesson.video_file %}
+    <button id="offline-download-btn" type="button" class="btn btn-outline-teal">
+      <span id="offline-download-label">Download for offline</span>
+    </button>
+  {% endif %}
   {% if lesson.notes_pdf %}
     <a href="{% url 'courses:download_notes' lesson.id %}" class="btn btn-outline-teal">Download Notes (PDF)</a>
   {% endif %}
@@ -21,4 +26,37 @@
   {% endif %}
   <a href="{% url 'courses:course_detail' lesson.course_id %}" class="btn btn-outline-secondary">Back to course</a>
 </div>
+<p id="offline-download-hint" class="small text-muted mt-2" style="display:none;">
+  Saved on this device &mdash; this lesson will keep playing even without a connection.
+</p>
+
+{% if lesson.video_file %}
+<script>
+(function () {
+  const btn = document.getElementById('offline-download-btn');
+  const label = document.getElementById('offline-download-label');
+  const hint = document.getElementById('offline-download-hint');
+  if (!btn || !('serviceWorker' in navigator)) return;
+
+  const lessonId = {{ lesson.id }};
+  const urls = ['{% url "courses:stream_video" lesson.id %}'{% if lesson.notes_pdf %}, '{% url "courses:download_notes" lesson.id %}'{% endif %}];
+
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'CACHE_LESSON_DONE' && event.data.lessonId === lessonId) {
+      label.textContent = event.data.ok ? 'Downloaded ✓' : 'Download failed — try again';
+      btn.disabled = false;
+      if (event.data.ok) hint.style.display = 'block';
+    }
+  });
+
+  btn.addEventListener('click', async () => {
+    const reg = await navigator.serviceWorker.ready;
+    if (!reg.active) return;
+    btn.disabled = true;
+    label.textContent = 'Downloading…';
+    reg.active.postMessage({ type: 'CACHE_LESSON', lessonId: lessonId, urls: urls });
+  });
+})();
+</script>
+{% endif %}
 {% endblock %}

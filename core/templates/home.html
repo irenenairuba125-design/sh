@@ -1,116 +1,238 @@
 {% extends 'base.html' %}
+{% load static %}
 {% load course_extras %}
+{% block extra_head %}
+<style>
+  .cover {
+    position: relative; overflow: hidden; border-radius: 28px;
+    background: linear-gradient(135deg, #0B6F65 0%, #0FA898 55%, #37C7B4 100%);
+    color: #fff; padding: 64px 48px; margin-bottom: 28px;
+  }
+  .cover::before, .cover::after { content:''; position:absolute; border-radius:999px; }
+  .cover::before { width:420px; height:420px; top:-160px; right:-120px; background:rgba(255,255,255,.08); }
+  .cover::after  { width:260px; height:260px; bottom:-120px; left:30%; background:rgba(242,169,59,.22); }
+  .cover-grid { position:relative; z-index:1; display:grid; grid-template-columns:1.2fr .8fr; gap:40px; align-items:center; }
+  .cover .eyebrow { display:inline-block; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.3); padding:6px 14px; border-radius:999px; font-size:13px; font-weight:600; margin-bottom:18px; }
+  .cover h1 { font-size:54px; font-weight:800; line-height:1.05; letter-spacing:-.02em; margin-bottom:18px; }
+  .cover h1 span { color:#FFD98A; }
+  .cover p.lead { font-size:18px; opacity:.94; max-width:520px; margin-bottom:26px; }
+  .btn-cover { background:#fff; color:#0B6F65; font-weight:700; border-radius:12px; padding:14px 28px; border:0; }
+  .btn-cover:hover { background:#FFF3D6; color:#0B6F65; transform:translateY(-1px); }
+  .btn-cover-ghost { border:1.5px solid rgba(255,255,255,.7); color:#fff; font-weight:700; border-radius:12px; padding:14px 28px; }
+  .btn-cover-ghost:hover { background:rgba(255,255,255,.14); color:#fff; }
+  .pay-row { display:flex; flex-wrap:wrap; gap:8px; margin-top:26px; }
+  .pay-chip { background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.28); border-radius:999px; padding:6px 14px; font-size:12.5px; font-weight:600; }
+  .phone { width:250px; margin:0 auto; background:#111827; border-radius:36px; padding:10px; box-shadow:0 30px 60px rgba(0,0,0,.35); transform:rotate(4deg); }
+  .phone-screen { background:#fff; border-radius:28px; overflow:hidden; color:#16181D; }
+  .phone-top { background:linear-gradient(135deg,#0FA898,#0C8A7D); color:#fff; padding:18px 16px 14px; font-weight:700; font-size:14px; }
+  .phone-top small { display:block; font-weight:500; opacity:.85; font-size:11px; }
+  .phone-card { margin:10px; border:1px solid #E6E9EC; border-radius:14px; overflow:hidden; }
+  .phone-card .thumb { height:64px; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,.95); }
+  .phone-card .thumb svg { width:26px; height:26px; }
+  .phone-card .meta { padding:8px 10px; font-size:12px; font-weight:600; }
+  .phone-card .meta small { display:block; color:#5B6472; font-weight:500; }
+  .trust { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:56px; }
+  .trust-item { display:flex; align-items:center; gap:12px; background:#fff; border:1px solid var(--border); border-radius:16px; padding:16px; }
+  .trust-item .icon-chip { width:40px; height:40px; }
+  .trust-item strong { display:block; font-size:14px; }
+  .trust-item span { font-size:12.5px; color:var(--muted); }
+  .section-title { font-size:32px; font-weight:800; letter-spacing:-.01em; }
+  .section-sub { color:var(--muted); margin-bottom:28px; }
+  .step { position:relative; background:#fff; border:1px solid var(--border); border-radius:20px; padding:28px 24px; height:100%; }
+  .step-num { position:absolute; top:-16px; left:22px; width:34px; height:34px; border-radius:999px; background:var(--gold); color:#fff; font-weight:800; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 14px rgba(242,169,59,.4); }
+  .cat-tile { display:flex; align-items:center; gap:12px; border-radius:16px; padding:14px 16px; color:#fff !important; text-decoration:none; font-weight:700; font-size:14px; transition:transform .15s, box-shadow .15s; }
+  .cat-tile:hover { transform:translateY(-3px); box-shadow:0 14px 26px rgba(0,0,0,.18); }
+  .cat-tile svg { width:26px; height:26px; flex-shrink:0; }
+  .cat-tile small { display:block; font-weight:500; opacity:.85; font-size:12px; }
+  .cta-band { background:linear-gradient(135deg,#16181D,#26303B); color:#fff; border-radius:24px; padding:44px 36px; text-align:center; }
+  .hero-photo { position:relative; border-radius:26px; overflow:hidden; box-shadow:0 30px 60px rgba(0,0,0,.35); border:4px solid rgba(255,255,255,.35); }
+  .hero-photo img { display:block; width:100%; height:340px; object-fit:cover; }
+  .hero-badge { position:absolute; left:14px; bottom:14px; background:#fff; color:#16181D; border-radius:14px; padding:10px 14px; font-size:13px; font-weight:700; display:flex; align-items:center; gap:10px; box-shadow:0 10px 24px rgba(0,0,0,.25); }
+  .hero-badge i { width:30px; height:30px; border-radius:999px; background:var(--teal); color:#fff; display:flex; align-items:center; justify-content:center; font-style:normal; }
+  .hero-badge small { display:block; font-weight:500; color:#5B6472; font-size:11.5px; }
+  .track-banner { position:relative; height:200px; border-radius:22px; overflow:hidden; margin-bottom:24px; }
+  .track-banner img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .track-banner::after { content:''; position:absolute; inset:0; background:linear-gradient(90deg, rgba(11,60,56,.88), rgba(11,60,56,.25)); }
+  .track-banner .txt { position:absolute; z-index:1; left:32px; top:50%; transform:translateY(-50%); color:#fff; }
+  .track-banner h2 { font-size:32px; font-weight:800; margin:0 0 4px; }
+  .split-photo { border-radius:24px; overflow:hidden; box-shadow:0 20px 44px rgba(0,0,0,.14); }
+  .split-photo img { display:block; width:100%; height:100%; min-height:300px; object-fit:cover; }
+  .cta-band { position:relative; overflow:hidden; }
+  .cta-band > * { position:relative; z-index:1; }
+  .cta-band .bg { position:absolute; inset:0; z-index:0; }
+  .cta-band .bg img { width:100%; height:100%; object-fit:cover; }
+  .cta-band .bg::after { content:''; position:absolute; inset:0; background:rgba(14,18,22,.72); }
+  @media (max-width: 860px) {
+    .track-banner { height:150px; } .track-banner .txt { left:20px; } .track-banner h2 { font-size:24px; }
+    .hero-photo img { height:230px; }
+    .cover { padding:36px 22px; border-radius:22px; }
+    .cover-grid { grid-template-columns:1fr; }
+    .cover h1 { font-size:36px; }
+    .phone { transform:none; width:220px; }
+    .trust { grid-template-columns:1fr 1fr; }
+    .section-title { font-size:26px; }
+  }
+</style>
+{% endblock %}
 {% block content %}
-<div class="hero mb-5">
-  <div class="hero-content">
-    <h1>Learn the law. Get paid to teach it.</h1>
-    <p class="mb-4">Moot court, legal drafting, case briefing, Bar Course prep. Practical skills from advocates who've done the work. Paid for with mobile money &mdash; subscribe monthly, cancel anytime.</p>
-    <div class="d-flex flex-wrap gap-2">
-      <a href="#courses" class="btn btn-teal btn-lg">Browse courses</a>
-      {% if user.is_authenticated and user.role == 'teacher' or user.is_superuser %}
-        <a href="{% url 'courses:teacher_dashboard' %}" class="btn btn-outline-teal btn-lg">Start teaching</a>
-      {% else %}
-        <a href="{% url 'accounts:login' %}" class="btn btn-outline-teal btn-lg">Start teaching</a>
-      {% endif %}
-    </div>
-  </div>
-</div>
 
-<h2 class="mb-4">Real skills. Real work.</h2>
-<div class="d-flex flex-wrap gap-2 mb-5">
-  <a href="{% url 'core:home' %}" class="btn btn-sm {% if not selected_category %}btn-teal{% else %}btn-outline-teal{% endif %}">All</a>
-  {% for c in category_counts %}
-    <a href="?category={{ c.value }}" class="btn btn-sm d-inline-flex align-items-center gap-2 {% if selected_category == c.value %}btn-teal{% else %}btn-outline-teal{% endif %}">
-      <span style="width:16px;height:16px;display:inline-flex;">{% include "courses/_category_icon.html" with category=c.value %}</span>
-      {{ c.label }} <span class="opacity-75">&middot; {{ c.count }} course{{ c.count|pluralize }}</span>
-    </a>
-  {% endfor %}
-</div>
-
-<div class="row mb-5 g-4">
-  <div class="col-md-7">
-    <h2 class="mb-4" id="courses">Two doors. Same house.</h2>
-    <div class="row g-4">
-      <div class="col-sm-6">
-        <div class="card card-hover p-4 h-100">
-          <div class="icon-chip mb-3" style="background: linear-gradient(135deg, var(--teal), var(--teal-dark));">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4L2 9l10 5 10-5-10-5z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg>
-          </div>
-          <h5>Learn</h5>
-          <p class="text-muted small">Subscribe to any track, download lessons for offline study, watch a free preview before you pay.</p>
-          <a href="#courses-grid" class="btn btn-outline-teal btn-sm mt-auto">Browse courses</a>
-        </div>
+<section class="cover">
+  <div class="cover-grid">
+    <div>
+      <span class="eyebrow">Made only for law students</span>
+      <h1>Learn the law. <span>Get paid to teach it.</span></h1>
+      <p class="lead">Moot court, legal drafting, case briefing, Bar Course prep. Practical skills from advocates who've done the work. Paid for with mobile money &mdash; subscribe monthly, cancel anytime.</p>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="#courses" class="btn btn-cover btn-lg">Browse courses</a>
+        {% if user.is_authenticated and user.role == 'teacher' or user.is_superuser %}
+          <a href="{% url 'courses:teacher_dashboard' %}" class="btn btn-cover-ghost btn-lg">Start teaching</a>
+        {% else %}
+          <a href="{% url 'accounts:login' %}" class="btn btn-cover-ghost btn-lg">Start teaching</a>
+        {% endif %}
       </div>
-      <div class="col-sm-6">
-        <div class="card card-hover p-4 h-100">
-          <div class="icon-chip mb-3" style="background: linear-gradient(135deg, var(--gold), #D98E1F);">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="4" width="8" height="12" rx="4"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6"/></svg>
-          </div>
-          <h5>Teach</h5>
-          <p class="text-muted small">Upload lessons, set your price, get paid weekly to mobile money.</p>
-          {% if user.is_authenticated and user.role == 'teacher' or user.is_superuser %}
-            <a href="{% url 'courses:teacher_dashboard' %}" class="btn btn-outline-teal btn-sm mt-auto">Start teaching</a>
-          {% else %}
-            <a href="{% url 'accounts:login' %}" class="btn btn-outline-teal btn-sm mt-auto">Start teaching</a>
-          {% endif %}
-        </div>
+      <div class="pay-row">
+        <span class="pay-chip">MTN MoMo</span><span class="pay-chip">Airtel Money</span>
+        <span class="pay-chip">Visa</span><span class="pay-chip">Mastercard</span>
+      </div>
+    </div>
+
+    <div>
+      <div class="hero-photo">
+        <img src="{% static 'core/photos/phones.jpg' %}" alt="Two students smiling at a phone during a lecture" loading="eager">
+        <div class="hero-badge"><i>&#9654;</i><span>Free preview lesson<small>Try it before you subscribe</small></span></div>
       </div>
     </div>
   </div>
+</section>
 
-  {% if spotlight %}
-  <div class="col-md-5">
-    <h2 class="mb-4">Instructor spotlight</h2>
-    <div class="card p-4" style="background: linear-gradient(160deg, var(--teal-light), #fff);">
-      <div class="d-flex align-items-center gap-3 mb-3">
-        <div style="width:52px;height:52px;border-radius:999px;background:linear-gradient(135deg, var(--teal), var(--teal-dark));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;">
+<section class="trust">
+  <div class="trust-item">
+    <div class="icon-chip" style="background:linear-gradient(135deg,#0FA898,#0C8A7D);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg></div>
+    <div><strong>Pay with mobile money</strong><span>MTN MoMo &amp; Airtel Money</span></div>
+  </div>
+  <div class="trust-item">
+    <div class="icon-chip" style="background:linear-gradient(135deg,#5B5FEF,#4347C4);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></div>
+    <div><strong>Study offline</strong><span>Download lessons &amp; notes</span></div>
+  </div>
+  <div class="trust-item">
+    <div class="icon-chip" style="background:linear-gradient(135deg,#F2A93B,#D98E1F);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"/><path d="M8.5 14L7 22l5-3 5 3-1.5-8"/></svg></div>
+    <div><strong>Earn certificates</strong><span>Pass the quiz, get certified</span></div>
+  </div>
+  <div class="trust-item">
+    <div class="icon-chip" style="background:linear-gradient(135deg,#E85D8A,#C43F6B);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8l6 4-6 4z"/></svg></div>
+    <div><strong>Free preview lesson</strong><span>Try before you subscribe</span></div>
+  </div>
+</section>
+
+<section class="mb-5">
+  <div class="row g-4 align-items-center">
+    <div class="col-md-6"><div class="split-photo"><img src="{% static 'core/photos/justice.jpg' %}" alt="Lady Justice statue beside a gavel and an open law book" loading="lazy"></div></div>
+    <div class="col-md-6">
+      <div class="eyebrow-dark small fw-bold text-uppercase mb-2" style="color:var(--teal-dark);letter-spacing:.08em;">Why Qiora</div>
+      <h2 class="section-title mb-3">Learn from people who've stood in court</h2>
+      <p class="text-muted">Lectures give you the law. Practising advocates show you how it's argued, drafted and won. Short lessons, real examples, and a quiz at the end of each one.</p>
+      <ul class="list-unstyled mb-0">
+        <li class="d-flex gap-2 mb-2"><span style="color:var(--teal-dark);">&#10003;</span> Moot court, drafting, case briefing and Bar prep</li>
+        <li class="d-flex gap-2 mb-2"><span style="color:var(--teal-dark);">&#10003;</span> Download lessons and notes for offline study</li>
+        <li class="d-flex gap-2"><span style="color:var(--teal-dark);">&#10003;</span> Pay monthly with MTN MoMo or Airtel Money</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="mb-5">
+  <h2 class="section-title text-center">Two doors. Same house.</h2>
+  <p class="section-sub text-center">Start learning in minutes.</p>
+  <div class="row g-4 pt-2">
+    <div class="col-md-4"><div class="step"><div class="step-num">1</div><h5>Pick your track</h5><p class="text-muted small mb-0">Choose from moot court, drafting, case law, Bar prep and more, then watch the free preview.</p></div></div>
+    <div class="col-md-4"><div class="step"><div class="step-num">2</div><h5>Pay with mobile money</h5><p class="text-muted small mb-0">Subscribe with MTN MoMo or Airtel Money. Your lessons unlock the moment payment clears.</p></div></div>
+    <div class="col-md-4"><div class="step"><div class="step-num">3</div><h5>Learn, quiz, get certified</h5><p class="text-muted small mb-0">Watch, download notes for offline study, pass the quiz and earn your certificate.</p></div></div>
+  </div>
+</section>
+
+<section class="mb-5">
+  <div class="track-banner">
+    <img src="{% static 'core/photos/library.jpg' %}" alt="Tall wooden library shelves lit in warm light" loading="lazy">
+    <div class="txt"><h2>Real skills. Real work.</h2><div style="opacity:.9;">Pick a track and see what's inside.</div></div>
+  </div>
+  <div class="row g-3">
+    {% for c in category_counts %}
+    <div class="col-6 col-md-4 col-lg-3">
+      <a href="?category={{ c.value }}#courses" class="cat-tile" style="background:{{ c.value|category_gradient }};{% if selected_category == c.value %}outline:3px solid var(--ink);outline-offset:2px;{% endif %}">
+        {% include "courses/_category_icon.html" with category=c.value %}
+        <span>{{ c.label }}<small>{{ c.count }} course{{ c.count|pluralize }}</small></span>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+  {% if selected_category %}<a href="{% url 'core:home' %}#courses" class="btn btn-outline-teal btn-sm mt-3">Show all tracks</a>{% endif %}
+</section>
+
+{% if spotlight %}
+<section class="mb-5">
+  <div class="card p-4" style="background: linear-gradient(160deg, var(--teal-light), #fff);">
+    <div class="row align-items-center g-3">
+      <div class="col-auto">
+        <div style="width:64px;height:64px;border-radius:999px;background:linear-gradient(135deg,var(--teal),var(--teal-dark));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;">
           {{ spotlight.teacher.first_name|default:spotlight.teacher.username|first|upper }}{{ spotlight.teacher.last_name|first|upper }}
         </div>
-        <div>
-          <div class="fw-bold">{{ spotlight.teacher.first_name|default:spotlight.teacher.username }} {{ spotlight.teacher.last_name|slice:":1" }}{% if spotlight.teacher.last_name %}.{% endif %}</div>
-          <div class="small text-muted">{{ spotlight.teacher.headline|default:"Instructor on Qiora" }}</div>
-        </div>
       </div>
-      {% if spotlight.course %}<p class="mb-1 fw-semibold">{{ spotlight.course.title }}</p>{% endif %}
-      <p class="small text-muted mb-1">{% if spotlight.teacher.location %}&#128205; {{ spotlight.teacher.location }}{% endif %}</p>
-      <p class="small text-muted mb-0">{{ spotlight.subscribers }} subscriber{{ spotlight.subscribers|pluralize }}</p>
+      <div class="col">
+        <div class="small fw-semibold" style="color:var(--teal-dark);">INSTRUCTOR SPOTLIGHT</div>
+        <div class="fw-bold fs-5">{{ spotlight.teacher.first_name|default:spotlight.teacher.username }} {{ spotlight.teacher.last_name|slice:":1" }}{% if spotlight.teacher.last_name %}.{% endif %} &middot; {{ spotlight.teacher.headline|default:"Instructor on Qiora" }}</div>
+        <div class="small text-muted">{% if spotlight.course %}{{ spotlight.course.title }} &middot; {% endif %}{% if spotlight.teacher.location %}{{ spotlight.teacher.location }} &middot; {% endif %}{{ spotlight.subscribers }} subscriber{{ spotlight.subscribers|pluralize }}</div>
+      </div>
     </div>
   </div>
-  {% endif %}
-</div>
+</section>
+{% endif %}
 
-<div id="courses-grid" class="row g-4">
-  {% for course in courses %}
-  <div class="col-md-4">
-    <div class="card card-hover h-100 overflow-hidden">
-      {% if course.thumbnail %}
-        <img src="{{ course.thumbnail.url }}" class="card-img-top" style="height:160px;object-fit:cover;">
-      {% else %}
-        <div style="height:160px;background:{{ course.category|category_gradient }};display:flex;align-items:center;justify-content:center;">
-          <span style="width:44px;height:44px;color:rgba(255,255,255,0.9);">{% include "courses/_category_icon.html" with category=course.category %}</span>
-        </div>
-      {% endif %}
-      <div class="card-body d-flex flex-column">
-        {% if course.category %}<div class="small fw-semibold mb-1" style="color:var(--teal-dark);">{{ course.get_category_display }}</div>{% endif %}
-        <h5 class="card-title">{{ course.title }}</h5>
-        <p class="card-text text-muted small flex-grow-1">{{ course.description|truncatewords:18 }}</p>
-        {% if course.average_rating %}
-        <div class="mb-2" style="color:var(--gold);font-size:13px;">
-          {% for _ in course.average_rating|floatformat:0|times %}&#9733;{% endfor %}
-          <span class="text-muted">({{ course.average_rating|floatformat:1 }})</span>
-        </div>
+<section id="courses" class="mb-5">
+  <h2 class="section-title mb-4">{% if selected_category %}Courses in this track{% else %}Latest courses{% endif %}</h2>
+  <div class="row g-4">
+    {% for course in courses %}
+    <div class="col-md-4">
+      <div class="card card-hover h-100 overflow-hidden">
+        {% if course.thumbnail %}
+          <img src="{{ course.thumbnail.url }}" class="card-img-top" style="height:160px;object-fit:cover;">
+        {% else %}
+          <div style="height:160px;position:relative;background:url('{{ course.id|stock_photo }}') center/cover;">
+            <div style="position:absolute;inset:0;background:{{ course.category|category_gradient }};opacity:.72;display:flex;align-items:center;justify-content:center;"></div>
+            <span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44px;height:44px;color:#fff;">{% include "courses/_category_icon.html" with category=course.category %}</span>
+          </div>
         {% endif %}
-        <div class="d-flex justify-content-between align-items-center mt-2">
-          <span class="badge-price">UGX {{ course.price|floatformat:0 }}{% if course.access_days %} / {{ course.access_days }}d{% endif %}</span>
-          <a href="{% url 'courses:course_detail' course.id %}" class="btn btn-teal btn-sm">View Course</a>
+        <div class="card-body d-flex flex-column">
+          {% if course.category %}<div class="small fw-semibold mb-1" style="color:var(--teal-dark);">{{ course.get_category_display }}</div>{% endif %}
+          <h5 class="card-title">{{ course.title }}</h5>
+          <p class="card-text text-muted small flex-grow-1">{{ course.description|truncatewords:18 }}</p>
+          {% if course.average_rating %}
+          <div class="mb-2" style="color:var(--gold);font-size:13px;">
+            {% for _ in course.average_rating|floatformat:0|times %}&#9733;{% endfor %}
+            <span class="text-muted">({{ course.average_rating|floatformat:1 }})</span>
+          </div>
+          {% endif %}
+          <div class="d-flex justify-content-between align-items-center mt-2">
+            <span class="badge-price">UGX {{ course.price|floatformat:0 }}{% if course.access_days %} / {{ course.access_days }}d{% endif %}</span>
+            <a href="{% url 'courses:course_detail' course.id %}" class="btn btn-teal btn-sm">View Course</a>
+          </div>
         </div>
       </div>
     </div>
+    {% empty %}
+    <div class="section-tint text-center"><p class="text-muted mb-0">No courses in this track yet. Check back soon.</p></div>
+    {% endfor %}
   </div>
-  {% empty %}
-  <div class="section-tint text-center">
-    <p class="text-muted mb-0">No courses published yet. Check back soon.</p>
-  </div>
-  {% endfor %}
-</div>
+</section>
+
+<section class="cta-band">
+  <div class="bg"><img src="{% static 'core/photos/gavel.jpg' %}" alt="" loading="lazy"></div>
+  <h2 class="fw-bold mb-2">Your degree teaches the theory. Qiora teaches the practice.</h2>
+  <p class="mb-4" style="opacity:.8;">Join free, watch a preview lesson, subscribe only when you're ready.</p>
+  {% if user.is_authenticated %}
+    <a href="#courses" class="btn btn-cover btn-lg">Browse courses</a>
+  {% else %}
+    <a href="{% url 'accounts:register' %}" class="btn btn-cover btn-lg">Get started</a>
+  {% endif %}
+</section>
+
 {% endblock %}
