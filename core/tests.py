@@ -401,3 +401,12 @@ class Pwa(Base):
             self.assertEqual(self.client.get('/static/core/' + name).status_code, 200, name)
         for name in ['phones', 'justice', 'gavel', 'library']:
             self.assertEqual(self.client.get('/static/core/photos/%s.jpg' % name).status_code, 200, name)
+
+
+class Health(Base):
+    @override_settings(DEBUG=True)
+    def test_healthz_reports_ok(self):
+        r = self.client.get('/healthz/')
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()['status'], 'ok')
+        self.assertNotIn('password', r.content.decode().lower())

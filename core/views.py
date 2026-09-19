@@ -78,3 +78,31 @@ def service_worker(request):
 
 def offline_page(request):
     return render(request, 'offline.html')
+
+
+def healthz(request):
+    """Open /healthz/ on the live site to see why it's failing. Reports a short status
+    code only - never passwords, hosts or connection strings."""
+    from django.db import connection
+
+    vendor = connection.vendor
+    status = 'ok'
+    if vendor == 'sqlite' and not settings.DEBUG:
+        status = 'DATABASE_URL_NOT_SET (using sqlite, which cannot work on Vercel)'
+    else:
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute('select count(*) from core_sitesettings')
+        except Exception as exc:
+            text = str(exc).lower()
+            if 'password authentication' in text or 'authentication failed' in text:
+                status = 'DB_PASSWORD_WRONG'
+            elif 'does not exist' in text and 'relation' in text:
+                status = 'TABLES_MISSING (run migrate)'
+            elif 'could not translate host' in text or 'network is unreachable' in text or 'timeout' in text:
+                status = 'DB_UNREACHABLE (use the pooler address, port 6543)'
+            elif 'tenant or user not found' in text:
+                status = 'DB_USER_WRONG (username must look like postgres.<project-ref>)'
+            else:
+                status = 'DB_ERROR:' + type(exc).__name__
+    return JsonResponse({'status': status, 'database': vendor, 'debug': settings.DEBUG})

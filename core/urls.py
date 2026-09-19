@@ -8,4 +8,5 @@ urlpatterns = [
     path('manifest.json', views.manifest, name='manifest'),
     path('sw.js', views.service_worker, name='service_worker'),
     path('offline/', views.offline_page, name='offline'),
+    path('healthz/', views.healthz, name='healthz'),
 ]
