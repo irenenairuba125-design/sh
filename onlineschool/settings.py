@@ -68,6 +68,8 @@ WSGI_APPLICATION = 'onlineschool.wsgi.application'
 _database_url = config('DATABASE_URL', default='')
 if _database_url:
     DATABASES = {'default': dj_database_url.parse(_database_url, conn_max_age=0, ssl_require=True)}
+    # Required when connecting through Supabase's transaction pooler (port 6543).
+    DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = True
 else:
     DATABASES = {
         'default': {
