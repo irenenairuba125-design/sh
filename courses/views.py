@@ -18,6 +18,10 @@ STORAGE_UNAVAILABLE = (
     "Upload files from a server with storage, or connect cloud file storage."
 )
 
+DRAFT_NOTICE = (
+    'Saved as a draft. Your course goes live once an admin verifies your instructor account.'
+)
+
 RANGE_RE = re.compile(r'bytes\s*=\s*(\d+)\s*-\s*(\d*)', re.IGNORECASE)
 
 
@@ -43,9 +47,31 @@ def _has_access(user, lesson):
 
 
 def course_detail(request, pk):
-    course = get_object_or_404(Course, pk=pk, is_published=True)
-    lessons = course.lessons.all()
-    lessons_with_access = [(lesson, _has_access(request.user, lesson)) for lesson in lessons]
+    from . import catalog
+
+    course = get_object_or_404(
+        Course.objects.select_related('teacher').prefetch_related('lessons', 'reviews', 'enrollments'),
+        pk=pk, is_published=True,
+    )
+    catalog.decorate(course)
+    lessons_with_access = [(lesson, _has_access(request.user, lesson)) for lesson in course.lesson_list]
+
+    modules = []
+    for lesson, has_access in lessons_with_access:
+        title = lesson.module_title or 'Lessons'
+        if not modules or modules[-1]['title'] != title:
+            modules.append({'title': title, 'items': [], 'minutes': 0})
+        modules[-1]['items'].append((lesson, has_access))
+        modules[-1]['minutes'] += lesson.duration_minutes
+
+    teacher = course.teacher
+    teacher_stats = None
+    if teacher:
+        teacher_stats = {
+            'courses': Course.objects.filter(teacher=teacher, is_published=True).count(),
+            'subscribers': Enrollment.objects.filter(course__teacher=teacher, is_paid=True).count(),
+        }
+    reviews = course.reviews.select_related('user').order_by('-created_at')[:10]
 
     enrollment = None
     is_paid = False
@@ -56,6 +82,9 @@ def course_detail(request, pk):
     return render(request, 'courses/course_detail.html', {
         'course': course,
         'lessons_with_access': lessons_with_access,
+        'modules': modules,
+        'teacher_stats': teacher_stats,
+        'reviews': reviews,
         'is_paid': is_paid,
         'enrollment': enrollment,
     })
@@ -150,12 +179,13 @@ def add_course(request):
             course = form.save(commit=False)
             if request.user.role == 'teacher':
                 course.teacher = request.user
+            draft = _force_draft(request.user, course)
             try:
                 course.save()
             except OSError:
                 messages.error(request, STORAGE_UNAVAILABLE)
             else:
-                messages.success(request, 'Course created. Now add its first lesson.')
+                messages.success(request, DRAFT_NOTICE if draft else 'Course created. Now add its first lesson.')
                 return redirect('courses:upload_lesson', course_id=course.id)
     else:
         form = CourseForm()
@@ -190,6 +220,14 @@ def upload_lesson(request, course_id):
     })
 
 
+def _force_draft(user, course):
+    """Unverified teachers can only save drafts; returns True when it was forced."""
+    if _is_plain_teacher(user) and not user.is_verified_teacher and course.is_published:
+        course.is_published = False
+        return True
+    return False
+
+
 @role_required('teacher')
 def teacher_dashboard(request):
     courses = Course.objects.filter(teacher=request.user)
@@ -198,10 +236,15 @@ def teacher_dashboard(request):
         QuizAttempt.objects.filter(quiz__lesson__course__in=courses)
         .select_related('user', 'quiz__lesson__course').order_by('-attempted_at')[:25]
     )
+    from payments.earnings import teacher_earnings
+    from payments.models import Payout
+
     return render(request, 'courses/teacher_dashboard.html', {
         'courses': courses,
         'enrollments': enrollments,
         'attempts': attempts,
+        'earnings': teacher_earnings(request.user),
+        'payouts': Payout.objects.filter(teacher=request.user)[:10],
     })
 
 
@@ -211,7 +254,10 @@ def admin_dashboard(request):
     total_students = Enrollment.objects.filter(is_paid=True).values('user').distinct().count()
     total_revenue = sum(p.amount for p in Payment.objects.filter(status=Payment.Status.SUCCESS))
     pending_payments = Payment.objects.filter(status=Payment.Status.PENDING).count()
+    from accounts.models import User
+
     return render(request, 'courses/admin_dashboard.html', {
+        'teachers': User.objects.filter(role=User.Role.TEACHER).order_by('is_verified_teacher', 'username'),
         'total_courses': total_courses,
         'total_students': total_students,
         'total_revenue': total_revenue,
@@ -235,12 +281,14 @@ def edit_course(request, course_id):
         if _is_plain_teacher(request.user):
             form.fields.pop('teacher', None)
         if form.is_valid():
+            edited = form.save(commit=False)
+            draft = _force_draft(request.user, edited)
             try:
-                form.save()
+                edited.save()
             except OSError:
                 messages.error(request, STORAGE_UNAVAILABLE)
             else:
-                messages.success(request, 'Course updated.')
+                messages.success(request, DRAFT_NOTICE if draft else 'Course updated.')
                 return redirect('courses:upload_lesson', course_id=course.id)
     else:
         form = CourseForm(instance=course)
@@ -271,3 +319,28 @@ def delete_lesson(request, lesson_id):
     lesson.delete()
     messages.success(request, 'Lesson deleted.')
     return redirect('courses:upload_lesson', course_id=course_id)
+
+
+def browse(request):
+    from django.db.models import Count
+    from . import catalog
+
+    courses, active = catalog.filtered_courses(request.GET)
+    counts = dict(
+        Course.objects.filter(is_published=True).values_list('category').annotate(n=Count('id'))
+    )
+    categories = [
+        {'value': value, 'label': label, 'count': counts.get(value, 0)}
+        for value, label in Course.Category.choices
+    ]
+    return render(request, 'courses/browse.html', {
+        'courses': courses,
+        'active': active,
+        'categories': categories,
+        'price_bands': [(k, v[0]) for k, v in catalog.PRICE_BANDS.items()],
+        'rating_bands': [(k, v[0]) for k, v in catalog.RATING_BANDS.items()],
+        'formats': list(catalog.FORMATS.items()),
+        'sorts': list(catalog.SORTS.items()),
+        'any_filter': any([active['category'], active['q'], active['price'], active['rating'],
+                           active['format'], active['freePreview']]),
+    })

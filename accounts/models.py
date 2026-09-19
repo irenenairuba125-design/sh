@@ -23,6 +23,12 @@ class User(AbstractUser):
         help_text='Shown on the homepage instructor spotlight, e.g. "Contracts that hold up"',
     )
     location = models.CharField(max_length=80, blank=True, help_text='e.g. "Kampala"')
+    bio = models.TextField(blank=True, help_text='Short introduction shown on the instructor block')
+    payout_phone = models.CharField(max_length=20, blank=True, help_text='Mobile-money number teachers are paid to')
+    is_verified_teacher = models.BooleanField(
+        default=False,
+        help_text='Verified teachers can publish courses. Unverified teachers save drafts only.',
+    )
 
     @property
     def is_teacher(self):

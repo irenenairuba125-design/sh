@@ -1,0 +1,41 @@
+{% load course_extras %}
+<div class="card card-hover h-100 overflow-hidden">
+  <a href="{% url 'courses:course_detail' course.id %}" class="text-decoration-none" style="color:inherit;">
+    {% if course.thumbnail %}
+      <img src="{{ course.thumbnail.url }}" alt="" class="card-img-top" style="height:150px;object-fit:cover;">
+    {% else %}
+      <div style="height:150px;position:relative;background:url('{{ course.id|stock_photo }}') center/cover;">
+        <div style="position:absolute;inset:0;background:{{ course.category|category_gradient }};opacity:.72;"></div>
+        <span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:40px;height:40px;color:#fff;">{% include "courses/_category_icon.html" with category=course.category %}</span>
+      </div>
+    {% endif %}
+    <div class="card-body pb-2">
+      <div class="d-flex flex-wrap gap-1 mb-2">
+        {% if course.category %}<span class="small fw-semibold" style="color:var(--teal-dark);">{{ course.get_category_display }}</span>{% endif %}
+      </div>
+      {% if course.badges %}
+      <div class="d-flex flex-wrap gap-1 mb-2">
+        {% for b in course.badges %}
+          <span class="badge rounded-pill {% if b == 'Bestseller' %}text-bg-warning{% elif b == 'Trending' %}text-bg-danger{% elif b == 'New' %}text-bg-info{% else %}course-badge{% endif %}">{{ b }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+      <h5 class="card-title mb-1">{{ course.title }}</h5>
+      {% if course.subtitle %}<p class="text-muted small mb-2">{{ course.subtitle }}</p>{% endif %}
+      {% if course.teacher %}<div class="small text-muted mb-1">by {{ course.teacher.first_name|default:course.teacher.username }} {{ course.teacher.last_name }}{% if course.teacher.is_verified_teacher %} <span title="Verified instructor" style="color:var(--teal-dark);">&#10003;</span>{% endif %}</div>{% endif %}
+      <div class="small text-muted">
+        {{ course.lesson_count }} lesson{{ course.lesson_count|pluralize }}{% if course.total_minutes %} &middot; {{ course.total_minutes|duration }}{% endif %}
+      </div>
+    </div>
+  </a>
+  <div class="card-footer bg-white border-0 pt-0 d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <div class="small">
+      {% if course.review_count %}
+        <span style="color:var(--gold);">&#9733;</span> <strong>{{ course.rating_avg }}</strong> <span class="text-muted">({{ course.review_count }})</span>
+      {% else %}
+        <span class="text-muted">No reviews yet</span>
+      {% endif %}
+    </div>
+    <span class="badge-price text-nowrap">UGX {{ course.price|floatformat:"0g" }}{{ course.price_period }}</span>
+  </div>
+</div>

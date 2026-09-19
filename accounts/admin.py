@@ -8,8 +8,8 @@ from .models import User
 class UserAdmin(BaseUserAdmin):
     fieldsets = BaseUserAdmin.fieldsets + (
         ('School role', {'fields': ('role', 'phone', 'is_blocked')}),
-        ('Instructor spotlight (homepage)', {'fields': ('headline', 'location')}),
+        ('Instructor profile', {'fields': ('headline', 'location', 'bio', 'payout_phone', 'is_verified_teacher')}),
     )
-    list_display = ('username', 'email', 'role', 'phone', 'is_blocked', 'is_active')
+    list_display = ('username', 'email', 'role', 'phone', 'is_verified_teacher', 'is_blocked', 'is_active')
     list_filter = ('role', 'is_blocked', 'is_active')
     search_fields = ('username', 'email', 'phone')

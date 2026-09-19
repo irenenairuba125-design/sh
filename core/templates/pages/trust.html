@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} &middot; {{ site_settings.site_name }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-lg-8 info-page">
+<h1>Trust &amp; safety</h1>
+<p class="text-muted">How we keep learning and payments safe.</p>
+<h2>Verified instructors</h2>
+<p>Anyone can apply to teach, but an admin verifies each instructor before their courses go live. Verified instructors carry a badge on their course pages.</p>
+<h2>Payments</h2>
+<p>Online payments are handled by Pesapal. Manual mobile-money payments are checked by an admin against the transaction ID before a course is unlocked, and a transaction ID can only be used once. We never see your mobile-money PIN.</p>
+<h2>Protected lessons</h2>
+<p>Lesson videos and notes are only served to people who have paid for the course. There is no public link to the files, so they cannot be shared around.</p>
+<h2>Cancelling</h2>
+<p>There is no automatic renewal. Your access lasts for the period you paid for and then ends unless you choose to pay again.</p>
+<h2>Report a problem</h2>
+<p>If you see content that is wrong, unsafe or unfair, or you have a payment problem, contact us{% if site_settings.support_email %} at {{ site_settings.support_email }}{% endif %}{% if site_settings.support_phone %} or on {{ site_settings.support_phone }}{% endif %}, and include the course name and what happened.</p>
+
+</div></div>
+<style>.info-page h1{margin-bottom:.25rem}.info-page h2{font-size:1.25rem;margin-top:2rem}.info-page p,.info-page li{color:#3f4753;line-height:1.7}</style>
+{% endblock %}

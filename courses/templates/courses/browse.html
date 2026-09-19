@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block title %}Browse courses &middot; {{ site_settings.site_name }}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+  <div>
+    <h1 class="mb-1">{% if active.category %}{% for c in categories %}{% if c.value == active.category %}{{ c.label }}{% endif %}{% endfor %}{% else %}All courses{% endif %}</h1>
+    <div class="text-muted">{{ courses|length }} course{{ courses|length|pluralize }}{% if active.q %} for &ldquo;{{ active.q }}&rdquo;{% endif %}</div>
+  </div>
+</div>
+
+<form method="get" action="{% url 'courses:browse' %}" class="row g-4">
+  <aside class="col-lg-3">
+    <details class="card p-3 filters" {% if any_filter %}open{% endif %} id="filters">
+      <summary class="fw-bold d-lg-none" style="cursor:pointer;">Filters</summary>
+      <div class="mt-3 mt-lg-0">
+        <label class="form-label small fw-bold text-uppercase" for="q">Search</label>
+        <input type="search" id="q" name="q" value="{{ active.q }}" class="form-control mb-3" placeholder="Title, topic or instructor">
+
+        <div class="small fw-bold text-uppercase mb-2">Category</div>
+        <div class="d-flex flex-column gap-1 mb-3">
+          <a href="{% url 'courses:browse' %}" class="filter-link {% if not active.category %}active{% endif %}">All categories</a>
+          {% for c in categories %}
+            <a href="?category={{ c.value }}" class="filter-link {% if active.category == c.value %}active{% endif %}">{{ c.label }} <span class="text-muted">{{ c.count }}</span></a>
+          {% endfor %}
+        </div>
+        {% if active.category %}<input type="hidden" name="category" value="{{ active.category }}">{% endif %}
+
+        <div class="small fw-bold text-uppercase mb-2">Price per month</div>
+        <div class="mb-3">
+          <div class="form-check"><input class="form-check-input" type="radio" name="price" id="p0" value="" {% if not active.price %}checked{% endif %}><label class="form-check-label" for="p0">Any</label></div>
+          {% for key, label in price_bands %}
+          <div class="form-check"><input class="form-check-input" type="radio" name="price" id="p{{ forloop.counter }}" value="{{ key }}" {% if active.price == key %}checked{% endif %}><label class="form-check-label" for="p{{ forloop.counter }}">{{ label }}</label></div>
+          {% endfor %}
+        </div>
+
+        <div class="small fw-bold text-uppercase mb-2">Rating</div>
+        <div class="mb-3">
+          <div class="form-check"><input class="form-check-input" type="radio" name="rating" id="r0" value="" {% if not active.rating %}checked{% endif %}><label class="form-check-label" for="r0">Any</label></div>
+          {% for key, label in rating_bands %}
+          <div class="form-check"><input class="form-check-input" type="radio" name="rating" id="r{{ forloop.counter }}" value="{{ key }}" {% if active.rating == key %}checked{% endif %}><label class="form-check-label" for="r{{ forloop.counter }}">&#9733; {{ label }}</label></div>
+          {% endfor %}
+        </div>
+
+        <div class="small fw-bold text-uppercase mb-2">Format</div>
+        <div class="mb-3">
+          <div class="form-check"><input class="form-check-input" type="radio" name="format" id="f0" value="" {% if not active.format %}checked{% endif %}><label class="form-check-label" for="f0">Any</label></div>
+          {% for key, label in formats %}
+          <div class="form-check"><input class="form-check-input" type="radio" name="format" id="f{{ forloop.counter }}" value="{{ key }}" {% if active.format == key %}checked{% endif %}><label class="form-check-label" for="f{{ forloop.counter }}">{{ label }}</label></div>
+          {% endfor %}
+        </div>
+
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" name="freePreview" id="fp" value="true" {% if active.freePreview %}checked{% endif %}>
+          <label class="form-check-label" for="fp">Has free preview</label>
+        </div>
+
+        <div class="small fw-bold text-uppercase mb-2">Sort by</div>
+        <select name="sort" class="form-select mb-3">
+          {% for key, label in sorts %}<option value="{{ key }}" {% if active.sort == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+
+        <button class="btn btn-teal w-100 mb-2">Apply filters</button>
+        {% if any_filter %}<a href="{% url 'courses:browse' %}" class="btn btn-outline-secondary w-100">Clear all</a>{% endif %}
+      </div>
+    </details>
+  </aside>
+
+  <section class="col-lg-9">
+    <div class="row g-4">
+      {% for course in courses %}
+        <div class="col-md-6 col-xl-4">{% include "courses/_course_card.html" %}</div>
+      {% empty %}
+        <div class="col-12"><div class="section-tint text-center">
+          <p class="mb-2 fw-semibold">No courses match these filters.</p>
+          <p class="text-muted mb-3">Try removing a filter or searching for something else.</p>
+          <a href="{% url 'courses:browse' %}" class="btn btn-outline-teal">Clear all filters</a>
+        </div></div>
+      {% endfor %}
+    </div>
+  </section>
+</form>
+
+<style>
+  .filter-link { text-decoration: none; color: var(--ink); font-size: 14px; padding: 4px 8px; border-radius: 8px; display: flex; justify-content: space-between; }
+  .filter-link:hover { background: var(--bg-soft); }
+  .filter-link.active { background: var(--teal-light); color: var(--teal-dark); font-weight: 700; }
+  .course-badge { background: var(--teal-light); color: var(--teal-dark); }
+  @media (min-width: 992px) { .filters > summary { display: none; } .filters { }
+  }
+</style>
+<script>
+  // On large screens the filter box is always open.
+  (function () {
+    var d = document.getElementById('filters');
+    if (d && window.matchMedia('(min-width: 992px)').matches) d.setAttribute('open', '');
+  })();
+</script>
+{% endblock %}

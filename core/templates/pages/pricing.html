@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} &middot; {{ site_settings.site_name }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-lg-8 info-page">
+<h1>Pricing</h1>
+<p class="text-muted">Simple, and paid with mobile money.</p>
+
+<h2>If you want to learn</h2>
+<p>Joining is free. You only pay when you subscribe to a course, and every course has a free preview lesson so you can try before you pay. Each teacher sets the price of their own course, shown on the course page in Uganda shillings. Courses billed monthly show <strong>/month</strong>.</p>
+<ul>
+  <li>Pay with MTN MoMo, Airtel Money, Visa or Mastercard.</li>
+  <li>There is no automatic renewal: your access lasts for the period you paid for, then it simply ends unless you pay again.</li>
+  <li>Download lessons and notes for offline study.</li>
+</ul>
+
+<h2>If you want to teach</h2>
+<p>It is free to create an account and build courses. You set your own price. When a student subscribes, the platform keeps a <strong>{{ site_settings.platform_fee_percent }}% fee</strong> and the rest is yours. For example, on a UGX 15,000 subscription you earn UGX {{ example_net }}.</p>
+<p><a href="{% url 'accounts:register' %}?role=creator" class="btn btn-teal">Start teaching</a> <a href="{% url 'core:payouts' %}" class="btn btn-outline-teal">How payouts work</a></p>
+
+</div></div>
+<style>.info-page h1{margin-bottom:.25rem}.info-page h2{font-size:1.25rem;margin-top:2rem}.info-page p,.info-page li{color:#3f4753;line-height:1.7}</style>
+{% endblock %}

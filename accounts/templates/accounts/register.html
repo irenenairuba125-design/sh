@@ -1,28 +1,58 @@
 {% extends 'base.html' %}
+{% block extra_head %}
+<style>
+  .auth-side { background: linear-gradient(150deg, #0B6F65, #0FA898 60%, #37C7B4); color: #fff; border-radius: 24px; padding: 40px 36px; min-height: 480px; }
+  .role-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--bg-soft); padding: 5px; border-radius: 12px; }
+  .role-tabs a { text-align: center; padding: 9px 6px; border-radius: 9px; text-decoration: none; font-weight: 600; font-size: 14px; color: var(--muted); }
+  .role-tabs a.active { background: #fff; color: var(--teal-dark); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+</style>
+{% endblock %}
+{% block title %}Get started &middot; {{ site_settings.site_name }}{% endblock %}
 {% block content %}
-<div class="section-tint">
-<div class="row justify-content-center">
-  <div class="col-md-6">
+<div class="row g-4 align-items-stretch justify-content-center">
+  <div class="col-lg-5 d-none d-lg-block">
+    <div class="auth-side h-100">
+      <div class="brand-mark mb-4" style="background:rgba(255,255,255,.18);">Q</div>
+      <h2 class="fw-bold mb-3" style="font-size:34px;line-height:1.1;">Law skills that pay.</h2>
+      <p style="opacity:.9;">Uganda's marketplace for practical law skills, paid for by mobile money.</p>
+      <ul class="list-unstyled mt-4 mb-0">
+        <li class="d-flex gap-2 mb-3"><span>&#10003;</span> Phone-first: works on any smartphone and in low data</li>
+        <li class="d-flex gap-2 mb-3"><span>&#10003;</span> Pay with MTN MoMo, Airtel Money, Visa or Mastercard</li>
+        <li class="d-flex gap-2 mb-3"><span>&#10003;</span> A free preview lesson on every course</li>
+        <li class="d-flex gap-2"><span>&#10003;</span> Subscribe monthly, cancel anytime</li>
+      </ul>
+    </div>
+  </div>
+  <div class="col-lg-6">
     <div class="card p-4">
-      <div class="brand-mark mb-3">Q</div>
-      <h1 class="mb-1">Create your student account</h1>
-      <p class="text-muted small mb-4">Free to join &mdash; you only pay when you subscribe to a course.</p>
+      <div class="role-tabs mb-4">
+        <a href="{% url 'accounts:register' %}" class="{% if not wants_to_teach %}active{% endif %}">I want to learn</a>
+        <a href="{% url 'accounts:register' %}?role=creator" class="{% if wants_to_teach %}active{% endif %}">I want to teach</a>
+      </div>
+      <h1 class="mb-1">{% if wants_to_teach %}Create your instructor account{% else %}Create your student account{% endif %}</h1>
+      <p class="text-muted small mb-4">
+        {% if wants_to_teach %}Build courses and get paid to your mobile money. An admin verifies instructors before their courses go live.{% else %}Free to join. You only pay when you subscribe to a course.{% endif %}
+      </p>
       <form method="post">
         {% csrf_token %}
         {{ form.non_field_errors }}
         {% for field in form %}
+          {% if field.name == 'role' %}
+            <input type="hidden" name="role" value="{% if wants_to_teach %}teacher{% else %}student{% endif %}">
+          {% elif not wants_to_teach and field.name == 'headline' or not wants_to_teach and field.name == 'location' or not wants_to_teach and field.name == 'bio' or not wants_to_teach and field.name == 'payout_phone' %}
+          {% else %}
           <div class="mb-3">
-            <label class="form-label">{{ field.label }}</label>
+            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
             {{ field }}
             {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
             {{ field.errors }}
           </div>
+          {% endif %}
         {% endfor %}
-        <button class="btn btn-teal w-100">Get started</button>
+        <button class="btn btn-teal w-100">{% if wants_to_teach %}Start teaching{% else %}Get started{% endif %}</button>
       </form>
-      <p class="text-center small text-muted mt-3">Already have an account? <a href="{% url 'accounts:login' %}">Sign in</a></p>
+      <p class="text-center small text-muted mt-3 mb-0">Already have an account? <a href="{% url 'accounts:login' %}">Sign in</a></p>
     </div>
   </div>
-</div>
 </div>
 {% endblock %}

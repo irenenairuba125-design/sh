@@ -14,7 +14,7 @@ class CourseManagement(Base):
         self.assertEqual(self.client.get(url).status_code, 403)
         self.client.force_login(self.teacher)
         self.assertEqual(self.client.get(url).status_code, 200)
-        r = self.client.post(url, {'title': 'Renamed', 'category': 'adr', 'description': 'x',
+        r = self.client.post(url, {'title': 'Renamed', 'category': 'adr', 'level': 'beginner', 'description': 'x',
                                    'price': '45000', 'is_published': 'on'})
         self.assertEqual(r.status_code, 302)
         self.course.refresh_from_db()
@@ -23,7 +23,7 @@ class CourseManagement(Base):
     def test_admin_can_reassign_teacher(self):
         self.client.force_login(self.admin)
         r = self.client.post(reverse('courses:edit_course', args=[self.course.id]), {
-            'title': 'T', 'category': 'adr', 'description': '', 'price': '1000',
+            'title': 'T', 'category': 'adr', 'level': 'beginner', 'description': '', 'price': '1000',
             'teacher': self.other_teacher.id, 'is_published': 'on'})
         self.assertEqual(r.status_code, 302)
         self.course.refresh_from_db()
@@ -55,7 +55,7 @@ class CourseManagement(Base):
         self.client.force_login(self.teacher)
         with mock.patch('courses.models.Lesson.save', side_effect=OSError(30, 'Read-only file system')):
             r = self.client.post(reverse('courses:upload_lesson', args=[self.course.id]), {
-                'title': 'V', 'order': 3, 'video_file': SimpleUploadedFile('v.mp4', b'123')})
+                'title': 'V', 'kind': 'video', 'duration_minutes': 5, 'order': 3, 'video_file': SimpleUploadedFile('v.mp4', b'123')})
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, 'no permanent disk')
 
@@ -74,16 +74,16 @@ class CourseManagement(Base):
 class Search(Base):
     def test_search_filters_courses(self):
         Course.objects.create(title='Moot Court Mastery', description='advocacy skills', price=1, teacher=self.teacher)
-        html = self.client.get('/', {'q': 'moot'}).content.decode()
+        html = self.client.get('/courses/', {'q': 'moot'}).content.decode()
         self.assertIn('Moot Court Mastery', html)
         self.assertNotIn('Zebra Plaint Basics', html)
-        self.assertIn('No courses match', self.client.get('/', {'q': 'zzzzqqqq'}).content.decode())
-        self.assertEqual(self.client.get('/', {'q': 'x' * 500}).status_code, 200)
+        self.assertIn('No courses match', self.client.get('/courses/', {'q': 'zzzzqqqq'}).content.decode())
+        self.assertEqual(self.client.get('/courses/', {'q': 'x' * 500}).status_code, 200)
 
     def test_search_combines_with_category(self):
-        html = self.client.get('/', {'q': 'zebra', 'category': 'adr'}).content.decode()
+        html = self.client.get('/courses/', {'q': 'zebra', 'category': 'adr'}).content.decode()
         self.assertIn('No courses match', html)
-        html = self.client.get('/', {'q': 'zebra', 'category': 'legal_writing'}).content.decode()
+        html = self.client.get('/courses/', {'q': 'zebra', 'category': 'legal_writing'}).content.decode()
         self.assertNotIn('No courses match', html)
 
 

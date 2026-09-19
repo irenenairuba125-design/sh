@@ -44,7 +44,32 @@
 <div class="d-flex gap-2 mb-4 flex-wrap">
   <a href="{% url 'courses:add_course' %}" class="btn btn-teal">Add Course</a>
   <a href="{% url 'payments:admin_payments' %}" class="btn btn-outline-teal">Review Payments</a>
+  <a href="{% url 'payments:admin_payouts' %}" class="btn btn-outline-teal">Teacher payouts</a>
   <a href="/django-admin/" class="btn btn-outline-secondary">Full admin</a>
+</div>
+
+<h2 class="mb-3">Instructors</h2>
+<div class="card p-0 overflow-auto mb-5">
+<table class="table mb-0 align-middle">
+  <thead><tr><th>Instructor</th><th>Location</th><th>Payout phone</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+    {% for t in teachers %}
+      <tr>
+        <td>{{ t.first_name|default:t.username }} {{ t.last_name }}<div class="small text-muted">{{ t.headline }}</div></td>
+        <td class="small">{{ t.location|default:'-' }}</td>
+        <td class="small">{{ t.payout_phone|default:'-' }}</td>
+        <td>{% if t.is_verified_teacher %}<span class="badge bg-success">Verified</span>{% else %}<span class="badge bg-warning text-dark">Waiting</span>{% endif %}</td>
+        <td class="text-end">
+          <form method="post" action="{% url 'accounts:verify_teacher' t.id %}" class="d-inline">{% csrf_token %}
+            <button class="btn btn-sm {% if t.is_verified_teacher %}btn-outline-secondary{% else %}btn-teal{% endif %}">{% if t.is_verified_teacher %}Remove verification{% else %}Verify{% endif %}</button>
+          </form>
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5" class="text-muted">No instructors yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
 </div>
 
 <h2 class="mb-3">All Courses</h2>

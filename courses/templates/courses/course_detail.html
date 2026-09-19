@@ -1,9 +1,10 @@
 {% extends 'base.html' %}
 {% load course_extras %}
+{% block title %}{{ course.title }} &middot; {{ site_settings.site_name }}{% endblock %}
 {% block content %}
 <div class="mb-4" style="border-radius:20px;overflow:hidden;">
   {% if course.thumbnail %}
-    <img src="{{ course.thumbnail.url }}" style="width:100%;height:220px;object-fit:cover;">
+    <img src="{{ course.thumbnail.url }}" alt="" style="width:100%;height:220px;object-fit:cover;">
   {% else %}
     <div style="height:220px;position:relative;background:url('{{ course.id|stock_photo }}') center/cover;">
       <div style="position:absolute;inset:0;background:{{ course.category|category_gradient }};opacity:.7;"></div>
@@ -13,44 +14,96 @@
 </div>
 
 <div class="row g-4">
-  <div class="col-md-8 order-2 order-md-1">
-    {% if course.category %}<div class="small fw-semibold mb-2" style="color:var(--teal-dark);">{{ course.get_category_display }}</div>{% endif %}
-    <h1>{{ course.title }}</h1>
-    {% if course.average_rating %}
-      <div class="mb-2" style="color:var(--gold);">
-        {% for _ in course.average_rating|floatformat:0|times %}&#9733;{% endfor %}
-        <span class="text-muted small">({{ course.average_rating|floatformat:1 }})</span>
-      </div>
-    {% endif %}
+  <div class="col-lg-8 order-2 order-lg-1">
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+      {% if course.category %}<span class="small fw-semibold" style="color:var(--teal-dark);">{{ course.get_category_display }}</span>{% endif %}
+      {% for b in course.badges %}
+        <span class="badge rounded-pill {% if b == 'Bestseller' %}text-bg-warning{% elif b == 'Trending' %}text-bg-danger{% elif b == 'New' %}text-bg-info{% else %}course-badge{% endif %}">{{ b }}</span>
+      {% endfor %}
+      <span class="badge rounded-pill text-bg-light border">{{ course.get_level_display }}</span>
+    </div>
+    <h1 class="mb-1">{{ course.title }}</h1>
+    {% if course.subtitle %}<p class="fs-5 text-muted mb-2">{{ course.subtitle }}</p>{% endif %}
+
+    <div class="d-flex flex-wrap gap-3 small text-muted mb-3">
+      {% if course.review_count %}
+        <span><span style="color:var(--gold);">&#9733;</span> <strong class="text-dark">{{ course.rating_avg }}</strong> ({{ course.review_count }} review{{ course.review_count|pluralize }})</span>
+      {% else %}<span>No reviews yet</span>{% endif %}
+      <span>{{ course.subscribers }} subscriber{{ course.subscribers|pluralize }}</span>
+      <span>{{ course.lesson_count }} lesson{{ course.lesson_count|pluralize }}{% if course.total_minutes %} &middot; {{ course.total_minutes|duration }}{% endif %}</span>
+    </div>
+
     {% if course.teacher %}
-      <p class="text-muted small mb-3">Taught by {{ course.teacher.first_name|default:course.teacher.username }} {{ course.teacher.last_name }}{% if course.teacher.headline %} &middot; {{ course.teacher.headline }}{% endif %}</p>
+    <div class="d-flex align-items-center gap-3 p-3 mb-4" style="background:var(--bg-soft);border-radius:16px;">
+      <div style="width:52px;height:52px;border-radius:999px;background:linear-gradient(135deg,var(--teal),var(--teal-dark));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">
+        {{ course.teacher.first_name|default:course.teacher.username|first|upper }}{{ course.teacher.last_name|first|upper }}
+      </div>
+      <div>
+        <div class="fw-bold">{{ course.teacher.first_name|default:course.teacher.username }} {{ course.teacher.last_name }}
+          {% if course.teacher.is_verified_teacher %}<span class="badge rounded-pill course-badge ms-1">&#10003; Verified instructor</span>{% endif %}
+        </div>
+        <div class="small text-muted">{{ course.teacher.headline }}{% if course.teacher.headline and course.teacher.location %} &middot; {% endif %}{{ course.teacher.location }}</div>
+        {% if course.teacher.bio %}<div class="small mt-1">{{ course.teacher.bio }}</div>{% endif %}
+        {% if teacher_stats %}<div class="small text-muted mt-1">{{ teacher_stats.subscribers }} subscriber{{ teacher_stats.subscribers|pluralize }} &middot; {{ teacher_stats.courses }} course{{ teacher_stats.courses|pluralize }}</div>{% endif %}
+      </div>
+    </div>
     {% endif %}
-    <p class="text-muted">{{ course.description }}</p>
+
+    <h3 class="mb-2">About this course</h3>
+    <p class="text-muted" style="white-space:pre-line;">{{ course.description }}</p>
 
     <h3 class="mt-4 mb-3">Lessons</h3>
-    <ul class="list-group">
-      {% for lesson, has_access in lessons_with_access %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          <span class="d-flex align-items-center gap-2">
-            <span style="width:18px;height:18px;color:{% if has_access %}var(--teal-dark){% else %}var(--muted){% endif %};">
-              {% if has_access %}
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z"/></svg>
-              {% else %}
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
-              {% endif %}
+    {% for module in modules %}
+    <div class="mb-3">
+      <div class="d-flex justify-content-between small fw-bold text-uppercase text-muted mb-1">
+        <span>{{ module.title }}</span>{% if module.minutes %}<span>{{ module.minutes|duration }}</span>{% endif %}
+      </div>
+      <ul class="list-group">
+        {% for lesson, has_access in module.items %}
+          <li class="list-group-item d-flex justify-content-between align-items-center gap-2">
+            <span class="d-flex align-items-center gap-2">
+              <span style="width:18px;height:18px;flex-shrink:0;color:{% if has_access %}var(--teal-dark){% else %}var(--muted){% endif %};">
+                {% if not has_access %}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+                {% elif lesson.kind == 'audio' %}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-6h3zM3 19a2 2 0 0 0 2 2h1v-6H3z"/></svg>
+                {% elif lesson.kind == 'pdf' %}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
+                {% else %}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z"/></svg>
+                {% endif %}
+              </span>
+              <span>
+                {{ lesson.title }}{% if lesson.free_preview %} <span class="badge course-badge">Free preview</span>{% endif %}
+                <span class="d-block small text-muted">{{ lesson.get_kind_display }}{% if lesson.duration_minutes %} &middot; {{ lesson.duration_minutes|duration }}{% endif %}{% if lesson.size_label %} &middot; about {{ lesson.size_label }} to download{% endif %}</span>
+              </span>
             </span>
-            {{ lesson.title }}{% if lesson.free_preview %} <span class="badge" style="background:var(--teal-light);color:var(--teal-dark);">Free preview</span>{% endif %}
-          </span>
-          {% if has_access %}
-            <a href="{% url 'courses:watch_lesson' lesson.id %}" class="btn btn-sm btn-teal">Watch</a>
-          {% else %}
-            <span class="text-muted small">Locked</span>
-          {% endif %}
-        </li>
-      {% empty %}
-        <li class="list-group-item text-muted">No lessons uploaded yet.</li>
-      {% endfor %}
-    </ul>
+            {% if has_access %}
+              <a href="{% url 'courses:watch_lesson' lesson.id %}" class="btn btn-sm btn-teal">Watch</a>
+            {% else %}
+              <span class="text-muted small">Locked</span>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% empty %}
+      <ul class="list-group"><li class="list-group-item text-muted">No lessons uploaded yet.</li></ul>
+    {% endfor %}
+
+    <h3 class="mt-5 mb-3">Reviews</h3>
+    {% for r in reviews %}
+      <div class="p-3 mb-2" style="background:var(--bg-soft);border-radius:14px;">
+        <div class="d-flex justify-content-between small">
+          <strong>{{ r.user.first_name|default:r.user.username }}</strong>
+          <span style="color:var(--gold);">{% for _ in r.rating|times %}&#9733;{% endfor %}</span>
+        </div>
+        {% if r.comment %}<div class="mt-1">{{ r.comment }}</div>{% endif %}
+        <div class="small text-muted mt-1">{{ r.created_at|date:'d M Y' }}</div>
+      </div>
+    {% empty %}
+      <p class="text-muted">No reviews yet. Subscribers can leave the first one.</p>
+    {% endfor %}
 
     {% if is_paid %}
     <div class="card p-4 mt-4">
@@ -58,11 +111,11 @@
       <form method="post" action="{% url 'reviews:add_review' course.id %}">
         {% csrf_token %}
         <div class="mb-2">
-          <label class="form-label">Rating (1-5)</label>
-          <input type="number" name="rating" min="1" max="5" class="form-control" style="max-width:100px;" required>
+          <label class="form-label" for="rating">Rating (1-5)</label>
+          <input type="number" id="rating" name="rating" min="1" max="5" class="form-control" style="max-width:100px;" required>
         </div>
         <div class="mb-2">
-          <textarea name="comment" class="form-control" placeholder="Your review"></textarea>
+          <textarea name="comment" class="form-control" placeholder="Your review" aria-label="Your review"></textarea>
         </div>
         <button class="btn btn-outline-teal">Submit Review</button>
       </form>
@@ -70,10 +123,13 @@
     {% endif %}
   </div>
 
-  <div class="col-md-4 order-1 order-md-2">
+  <div class="col-lg-4 order-1 order-lg-2">
     <div class="card p-4" style="position:sticky;top:88px;">
-      <div class="badge-price fs-4 text-center mb-3">
-        UGX {{ course.price|floatformat:"0g" }}{% if course.access_days %} / {{ course.access_days }} days{% endif %}
+      <div class="badge-price fs-4 text-center mb-1">
+        UGX {{ course.price|floatformat:"0g" }}{{ course.price_period }}{% if course.access_days and not course.price_period %} / {{ course.access_days }} days{% endif %}
+      </div>
+      <div class="small text-muted text-center mb-3">
+        {% if course.price_period %}Billed monthly with mobile money. Cancel anytime.{% elif course.access_days %}Access for {{ course.access_days }} days.{% else %}One payment, lifetime access.{% endif %}
       </div>
       {% if is_paid %}
         <div class="alert alert-success mb-0">You have access to this course.</div>
@@ -82,13 +138,16 @@
       {% else %}
         <a href="{% url 'accounts:login' %}?next={% url 'courses:course_detail' course.id %}" class="btn btn-teal btn-lg w-100">Sign in to enroll</a>
       {% endif %}
+      {% if course.has_free_preview and not is_paid %}<p class="small text-center mt-2 mb-0" style="color:var(--teal-dark);">A free preview lesson is available.</p>{% endif %}
       <hr>
       <ul class="list-unstyled small mb-0" style="color:var(--muted);">
-        <li class="d-flex align-items-center gap-2 mb-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal-dark)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Download notes for offline study</li>
+        <li class="d-flex align-items-center gap-2 mb-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal-dark)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Download lessons for offline study</li>
+        <li class="d-flex align-items-center gap-2 mb-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal-dark)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>Data size shown before you download</li>
         <li class="d-flex align-items-center gap-2 mb-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal-dark)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"/><path d="M8.5 14L7 22l5-3 5 3-1.5-8"/></svg>Certificate on passing the quiz</li>
-        <li class="d-flex align-items-center gap-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal-dark)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>Pay with MTN MoMo / Airtel Money</li>
+        <li class="d-flex align-items-center gap-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal-dark)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>Pay with MTN MoMo, Airtel Money or card</li>
       </ul>
     </div>
   </div>
 </div>
+<style>.course-badge { background: var(--teal-light); color: var(--teal-dark); }</style>
 {% endblock %}

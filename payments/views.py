@@ -14,7 +14,8 @@ from django.utils import timezone
 from accounts.decorators import role_required
 from core.models import SiteSettings
 from courses.models import Course
-from .models import Enrollment, Payment
+from .earnings import teacher_earnings
+from .models import Enrollment, Payment, Payout
 from .services import pesapal
 
 
@@ -225,3 +226,40 @@ def reject_payment(request, payment_id):
     else:
         messages.error(request, 'That payment was already approved.')
     return redirect('payments:admin_payments')
+
+
+@role_required('admin')
+def admin_payouts(request):
+    from decimal import Decimal, InvalidOperation
+
+    from accounts.models import User
+
+    if request.method == 'POST':
+        teacher = get_object_or_404(User, pk=request.POST.get('teacher_id'), role=User.Role.TEACHER)
+        try:
+            amount = Decimal(request.POST.get('amount', '0'))
+        except InvalidOperation:
+            amount = Decimal(0)
+        balance = teacher_earnings(teacher)['balance']
+        if amount <= 0 or amount != amount.to_integral_value():
+            messages.error(request, 'Enter a whole amount above zero.')
+        elif amount > balance:
+            messages.error(request, 'That is more than the balance owed to this teacher.')
+        else:
+            Payout.objects.create(
+                teacher=teacher, amount=amount, phone=teacher.payout_phone,
+                reference=request.POST.get('reference', '').strip()[:100],
+            )
+            messages.success(request, 'Recorded a payout of UGX %s to %s.' % (f'{int(amount):,}', teacher.username))
+        return redirect('payments:admin_payouts')
+
+    rows = []
+    for teacher in User.objects.filter(role=User.Role.TEACHER).order_by('username'):
+        data = teacher_earnings(teacher)
+        data['teacher'] = teacher
+        rows.append(data)
+    rows.sort(key=lambda r: -r['balance'])
+    return render(request, 'payments/admin_payouts.html', {
+        'rows': rows,
+        'recent': Payout.objects.select_related('teacher')[:15],
+    })

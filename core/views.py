@@ -11,40 +11,86 @@ from courses.models import Course
 from payments.models import Enrollment
 
 
+CATEGORY_BLURBS = {
+    'legal_writing': 'Plaints, contracts, opinions',
+    'moot_court': 'Argue it and win',
+    'case_law': 'Read and use precedent',
+    'constitutional': 'Rights, powers, courts',
+    'contract': 'Deals that hold up',
+    'criminal': 'Procedure and defence',
+    'research': 'Find the law fast',
+    'bar_prep': 'Pass the Bar Course',
+    'human_rights': 'Advocacy and remedies',
+    'adr': 'Mediation and arbitration',
+    'internship': 'Clerkship survival skills',
+    'international': 'Treaties and comparisons',
+    'family_land': 'Succession, land and family',
+}
+
+
+def _live_this_week():
+    """Real numbers for the 'Live this week' card: sales and new subscribers of one instructor."""
+    from datetime import timedelta
+
+    from django.db.models import Sum
+    from django.utils import timezone
+
+    from payments.models import Payment
+
+    teachers = User.objects.filter(role=User.Role.TEACHER, courses__is_published=True).distinct()
+    teacher = teachers.filter(is_verified_teacher=True).first() or teachers.first()
+    if not teacher:
+        return None
+    week_ago = timezone.now() - timedelta(days=7)
+    sales = Payment.objects.filter(course__teacher=teacher, status=Payment.Status.SUCCESS)
+    last = sales.order_by('-created_at').first()
+    return {
+        'teacher': teacher,
+        'course': (last.course if last else teacher.courses.filter(is_published=True).first()),
+        'earned_week': sales.filter(created_at__gte=week_ago).aggregate(t=Sum('amount'))['t'] or 0,
+        'subscribers': Enrollment.objects.filter(course__teacher=teacher, is_paid=True).count(),
+        'new_subscribers': Enrollment.objects.filter(course__teacher=teacher, is_paid=True, created_at__gte=week_ago).count(),
+        'last_method': last.get_method_display() if last else '',
+        'last_day': last.created_at.strftime('%a') if last else '',
+    }
+
+
 def home(request):
-    courses = Course.objects.filter(is_published=True)
+    from courses import catalog
 
-    selected_category = request.GET.get('category', '')
-    if selected_category:
-        courses = courses.filter(category=selected_category)
-    query = request.GET.get('q', '').strip()[:100]
-    if query:
-        courses = courses.filter(Q(title__icontains=query) | Q(description__icontains=query))
-    courses = courses.order_by('-created_at')
-
-    category_counts = [
-        {'value': value, 'label': label, 'count': Course.objects.filter(is_published=True, category=value).count()}
+    counts = {
+        value: Course.objects.filter(is_published=True, category=value).count()
+        for value, _ in Course.Category.choices
+    }
+    categories = [
+        {'value': value, 'label': label, 'count': counts[value], 'blurb': CATEGORY_BLURBS.get(value, '')}
         for value, label in Course.Category.choices
     ]
-
-    spotlight = None
-    spotlight_teacher = (
-        User.objects.filter(role=User.Role.TEACHER, courses__is_published=True).distinct().first()
-    )
-    if spotlight_teacher:
-        spotlight = {
-            'teacher': spotlight_teacher,
-            'course': spotlight_teacher.courses.filter(is_published=True).first(),
-            'subscribers': Enrollment.objects.filter(course__teacher=spotlight_teacher, is_paid=True).count(),
-        }
-
+    latest = [catalog.decorate(c) for c in catalog.base_queryset().order_by('-created_at')[:6]]
     return render(request, 'home.html', {
-        'courses': courses,
-        'category_counts': category_counts,
-        'selected_category': selected_category,
-        'query': query,
-        'spotlight': spotlight,
+        'categories': categories,
+        'latest': latest,
+        'live': _live_this_week(),
+        'total_courses': sum(counts.values()),
     })
+
+
+PAGES = {
+    'pricing': ('Pricing', 'pages/pricing.html'),
+    'payouts': ('Payouts', 'pages/payouts.html'),
+    'about': ('About', 'pages/about.html'),
+    'trust': ('Trust & safety', 'pages/trust.html'),
+    'terms': ('Terms', 'pages/terms.html'),
+    'privacy': ('Privacy', 'pages/privacy.html'),
+}
+
+
+def info_page(request, slug):
+    title, template = PAGES[slug]
+    from .models import SiteSettings
+
+    fee = SiteSettings.load().platform_fee_percent
+    return render(request, template, {'page_title': title, 'example_net': f'{15000 - 15000 * fee // 100:,}'})
 
 
 def manifest(request):

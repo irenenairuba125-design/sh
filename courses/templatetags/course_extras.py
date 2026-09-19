@@ -31,3 +31,16 @@ def stock_photo(course_id):
     except (TypeError, ValueError):
         name = STOCK_PHOTOS[0]
     return static('core/photos/' + name)
+
+
+@register.filter
+def duration(minutes):
+    """90 -> '1h 30m', 45 -> '45m'."""
+    try:
+        minutes = int(minutes)
+    except (TypeError, ValueError):
+        return ''
+    hours, mins = divmod(minutes, 60)
+    if hours and mins:
+        return f'{hours}h {mins}m'
+    return f'{hours}h' if hours else f'{mins}m'

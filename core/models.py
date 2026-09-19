@@ -11,6 +11,10 @@ class SiteSettings(models.Model):
         default='Learn the law skills lecture halls skip.',
     )
     momo_number = models.CharField(max_length=20, blank=True)
+    platform_fee_percent = models.PositiveIntegerField(
+        default=10,
+        help_text='Share of each payment the platform keeps; the rest is owed to the teacher.',
+    )
     logo = models.ImageField(upload_to='branding/', blank=True, null=True)
     support_phone = models.CharField(max_length=20, blank=True)
     support_email = models.EmailField(blank=True)

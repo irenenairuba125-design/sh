@@ -354,7 +354,7 @@ class RolesAndAccounts(Base):
     def test_teacher_created_course_is_owned_by_teacher(self):
         self.client.force_login(self.teacher)
         r = self.client.post(reverse('courses:add_course'), {
-            'title': 'New', 'category': 'adr', 'description': 'd', 'price': '10000', 'is_published': 'on',
+            'title': 'New', 'category': 'adr', 'level': 'beginner', 'description': 'd', 'price': '10000', 'is_published': 'on',
         })
         self.assertEqual(r.status_code, 302)
         self.assertEqual(Course.objects.get(title='New').teacher, self.teacher)

@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} &middot; {{ site_settings.site_name }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-lg-8 info-page">
+<h1>Terms of use</h1>
+<p class="text-muted">A short, plain-language starting point. Have it reviewed before you launch.</p>
+<h2>Using the service</h2>
+<p>You must give accurate details when you register and keep your password private. You are responsible for what happens under your account. We may block accounts that break these terms.</p>
+<h2>Learners</h2>
+<p>A subscription gives you personal access to a course for the period you paid for. Do not share, resell or publish the lessons, notes or downloads.</p>
+<h2>Instructors</h2>
+<p>You must own or have permission to use everything you upload. Courses go live only after your account is verified and may be removed if they are misleading or unlawful. The platform keeps a {{ site_settings.platform_fee_percent }}% fee on each payment and pays you the balance to your mobile-money number.</p>
+<h2>Payments and refunds</h2>
+<p>Payments are made in Uganda shillings by mobile money or card. Contact us promptly if you were charged in error.</p>
+<h2>Changes</h2>
+<p>We may update these terms. Continuing to use the service means you accept the updated terms.</p>
+
+</div></div>
+<style>.info-page h1{margin-bottom:.25rem}.info-page h2{font-size:1.25rem;margin-top:2rem}.info-page p,.info-page li{color:#3f4753;line-height:1.7}</style>
+{% endblock %}

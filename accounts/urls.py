@@ -11,4 +11,5 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('after-login/', views.post_login_redirect, name='post_login'),
     path('me/', views.profile, name='profile'),
+    path('verify/<int:user_id>/', views.verify_teacher, name='verify_teacher'),
 ]

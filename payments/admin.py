@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Enrollment, Payment
+from .models import Enrollment, Payment, Payout
 
 
 @admin.register(Payment)
@@ -14,3 +14,8 @@ class PaymentAdmin(admin.ModelAdmin):
 class EnrollmentAdmin(admin.ModelAdmin):
     list_display = ('user', 'course', 'is_paid', 'expiry_date')
     list_filter = ('is_paid',)
+
+
+@admin.register(Payout)
+class PayoutAdmin(admin.ModelAdmin):
+    list_display = ('teacher', 'amount', 'phone', 'reference', 'created_at')

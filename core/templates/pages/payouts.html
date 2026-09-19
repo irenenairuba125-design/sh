@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} &middot; {{ site_settings.site_name }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-lg-8 info-page">
+<h1>Payouts</h1>
+<p class="text-muted">Get paid to your mobile money.</p>
+
+<h2>How you earn</h2>
+<ol>
+  <li>A student subscribes to your course and their payment is confirmed.</li>
+  <li>The platform keeps a {{ site_settings.platform_fee_percent }}% fee. The rest is added to your <strong>balance</strong>, shown on your teacher dashboard.</li>
+  <li>We send your balance to the mobile-money number on your account, and record the payout with its transaction reference so you can see it.</li>
+</ol>
+
+<h2>Good to know</h2>
+<ul>
+  <li>Add a mobile-money number on your <a href="{% url 'accounts:profile' %}">account page</a>. Payouts go to that number.</li>
+  <li>We aim to pay out weekly. Every payout appears in the Payouts table on your dashboard with the date and reference.</li>
+  <li>Only verified instructors can publish courses and earn. Verification is done by an admin after you sign up.</li>
+</ul>
+<p><a href="{% url 'accounts:register' %}?role=creator" class="btn btn-teal">Start teaching</a></p>
+
+</div></div>
+<style>.info-page h1{margin-bottom:.25rem}.info-page h2{font-size:1.25rem;margin-top:2rem}.info-page p,.info-page li{color:#3f4753;line-height:1.7}</style>
+{% endblock %}

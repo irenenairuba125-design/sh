@@ -21,7 +21,14 @@ class Course(models.Model):
         INTERNATIONAL = 'international', 'International & Comparative Law'
         FAMILY_LAND = 'family_land', 'Family & Land Law'
 
+    class Level(models.TextChoices):
+        BEGINNER = 'beginner', 'Beginner'
+        INTERMEDIATE = 'intermediate', 'Intermediate'
+        ADVANCED = 'advanced', 'Advanced'
+
     title = models.CharField(max_length=200)
+    subtitle = models.CharField(max_length=200, blank=True, help_text='One line under the title, e.g. "Draft your first plaint in an afternoon"')
+    level = models.CharField(max_length=15, choices=Level.choices, default=Level.BEGINNER)
     category = models.CharField(max_length=20, choices=Category.choices, blank=True)
     description = models.TextField(blank=True)
     price = models.DecimalField(
@@ -53,8 +60,16 @@ class Course(models.Model):
 
 
 class Lesson(models.Model):
+    class Kind(models.TextChoices):
+        VIDEO = 'video', 'Video'
+        AUDIO = 'audio', 'Audio'
+        PDF = 'pdf', 'PDF / notes'
+
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='lessons')
     title = models.CharField(max_length=200)
+    module_title = models.CharField(max_length=120, blank=True, help_text='Group lessons, e.g. "Module 01: Setup"')
+    kind = models.CharField(max_length=10, choices=Kind.choices, default=Kind.VIDEO)
+    duration_minutes = models.PositiveIntegerField(default=0, help_text='Length in minutes')
     order = models.PositiveIntegerField(default=1)
     video_file = models.FileField(upload_to='videos/', storage=protected_storage, blank=True, null=True)
     notes_pdf = models.FileField(upload_to='notes/', storage=protected_storage, blank=True, null=True)
@@ -65,6 +80,18 @@ class Lesson(models.Model):
 
     class Meta:
         ordering = ['order', 'id']
+
+    @property
+    def size_label(self):
+        """Approximate download size, so students can see the data cost first."""
+        try:
+            size = self.video_file.size if self.video_file else 0
+        except (OSError, ValueError):
+            return ''
+        if not size:
+            return ''
+        mb = size / (1024 * 1024)
+        return f'{mb:.0f} MB' if mb >= 10 else f'{mb:.1f} MB'
 
     def __str__(self):
         return f'{self.course.title} - {self.title}'
