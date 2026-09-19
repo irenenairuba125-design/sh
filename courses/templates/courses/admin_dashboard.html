@@ -3,39 +3,39 @@
 <h1 class="mb-4">Admin Dashboard</h1>
 
 <div class="row g-3 mb-4">
-  <div class="col-md-3">
+  <div class="col-6 col-md-3">
     <div class="card p-3">
       <div class="icon-chip mb-2" style="background:linear-gradient(135deg, var(--teal), var(--teal-dark));">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
       </div>
-      <div class="fs-3 fw-bold">{{ total_courses }}</div>
+      <div class="fs-4 fw-bold">{{ total_courses }}</div>
       <div class="text-muted small">Courses</div>
     </div>
   </div>
-  <div class="col-md-3">
+  <div class="col-6 col-md-3">
     <div class="card p-3">
       <div class="icon-chip mb-2" style="background:linear-gradient(135deg, #5B5FEF, #4347C4);">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       </div>
-      <div class="fs-3 fw-bold">{{ total_students }}</div>
+      <div class="fs-4 fw-bold">{{ total_students }}</div>
       <div class="text-muted small">Paying Students</div>
     </div>
   </div>
-  <div class="col-md-3">
+  <div class="col-6 col-md-3">
     <div class="card p-3">
       <div class="icon-chip mb-2" style="background:linear-gradient(135deg, var(--gold), #D98E1F);">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1.1 1.1-2 2.5-2s2.5.9 2.5 2-1.1 1.7-2.5 2-2.5.9-2.5 2 1.1 2 2.5 2 2.5-.9 2.5-2"/></svg>
       </div>
-      <div class="fs-3 fw-bold">UGX {{ total_revenue|floatformat:0 }}</div>
+      <div class="fs-4 fw-bold">UGX {{ total_revenue|floatformat:"0g" }}</div>
       <div class="text-muted small">Revenue</div>
     </div>
   </div>
-  <div class="col-md-3">
+  <div class="col-6 col-md-3">
     <div class="card p-3">
       <div class="icon-chip mb-2" style="background:linear-gradient(135deg, #E85D8A, #C43F6B);">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
       </div>
-      <div class="fs-3 fw-bold">{{ pending_payments }}</div>
+      <div class="fs-4 fw-bold">{{ pending_payments }}</div>
       <div class="text-muted small">Pending Payments</div>
     </div>
   </div>
@@ -44,11 +44,11 @@
 <div class="d-flex gap-2 mb-4 flex-wrap">
   <a href="{% url 'courses:add_course' %}" class="btn btn-teal">Add Course</a>
   <a href="{% url 'payments:admin_payments' %}" class="btn btn-outline-teal">Review Payments</a>
-  <a href="/django-admin/" class="btn btn-outline-secondary">Full Admin (block students, edit settings)</a>
+  <a href="/django-admin/" class="btn btn-outline-secondary">Full admin</a>
 </div>
 
 <h2 class="mb-3">All Courses</h2>
-<div class="card p-0 overflow-hidden">
+<div class="card p-0 overflow-auto">
 <table class="table mb-0">
   <thead><tr><th>Title</th><th>Category</th><th>Teacher</th><th>Price</th><th>Published</th><th></th></tr></thead>
   <tbody>
@@ -57,7 +57,7 @@
         <td>{{ c.title }}</td>
         <td class="text-muted small">{{ c.get_category_display|default:'-' }}</td>
         <td>{{ c.teacher|default:'-' }}</td>
-        <td>UGX {{ c.price|floatformat:0 }}</td>
+        <td>UGX {{ c.price|floatformat:"0g" }}</td>
         <td>{% if c.is_published %}<span class="badge" style="background:var(--teal-light);color:var(--teal-dark);">Yes</span>{% else %}<span class="badge bg-light text-muted">No</span>{% endif %}</td>
         <td class="text-end">
           <a href="{% url 'courses:upload_lesson' c.id %}" class="btn btn-sm btn-outline-teal">Lessons</a>

@@ -13,7 +13,7 @@
 </div>
 
 <div class="row g-4">
-  <div class="col-md-8">
+  <div class="col-md-8 order-2 order-md-1">
     {% if course.category %}<div class="small fw-semibold mb-2" style="color:var(--teal-dark);">{{ course.get_category_display }}</div>{% endif %}
     <h1>{{ course.title }}</h1>
     {% if course.average_rating %}
@@ -70,10 +70,10 @@
     {% endif %}
   </div>
 
-  <div class="col-md-4">
+  <div class="col-md-4 order-1 order-md-2">
     <div class="card p-4" style="position:sticky;top:88px;">
       <div class="badge-price fs-4 text-center mb-3">
-        UGX {{ course.price|floatformat:0 }}{% if course.access_days %} / {{ course.access_days }} days{% endif %}
+        UGX {{ course.price|floatformat:"0g" }}{% if course.access_days %} / {{ course.access_days }} days{% endif %}
       </div>
       {% if is_paid %}
         <div class="alert alert-success mb-0">You have access to this course.</div>
@@ -83,15 +83,11 @@
         <a href="{% url 'accounts:login' %}?next={% url 'courses:course_detail' course.id %}" class="btn btn-teal btn-lg w-100">Sign in to enroll</a>
       {% endif %}
       <hr>
-      <div class="small text-muted d-flex align-items-center gap-2 mb-2">
-        <span style="width:16px;height:16px;">&#128190;</span> Download notes for offline study
-      </div>
-      <div class="small text-muted d-flex align-items-center gap-2 mb-2">
-        <span style="width:16px;height:16px;">&#127942;</span> Certificate on passing the quiz
-      </div>
-      <div class="small text-muted d-flex align-items-center gap-2">
-        <span style="width:16px;height:16px;">&#128241;</span> Pay with MTN MoMo / Airtel Money
-      </div>
+      <ul class="list-unstyled small mb-0" style="color:var(--muted);">
+        <li class="d-flex align-items-center gap-2 mb-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal-dark)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Download notes for offline study</li>
+        <li class="d-flex align-items-center gap-2 mb-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal-dark)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"/><path d="M8.5 14L7 22l5-3 5 3-1.5-8"/></svg>Certificate on passing the quiz</li>
+        <li class="d-flex align-items-center gap-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal-dark)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>Pay with MTN MoMo / Airtel Money</li>
+      </ul>
     </div>
   </div>
 </div>

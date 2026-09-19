@@ -219,7 +219,7 @@
           </div>
           {% endif %}
           <div class="d-flex justify-content-between align-items-center mt-2">
-            <span class="badge-price">UGX {{ course.price|floatformat:0 }}{% if course.access_days %} / {{ course.access_days }}d{% endif %}</span>
+            <span class="badge-price">UGX {{ course.price|floatformat:"0g" }}{% if course.access_days %} / {{ course.access_days }}d{% endif %}</span>
             <a href="{% url 'courses:course_detail' course.id %}" class="btn btn-teal btn-sm">View Course</a>
           </div>
         </div>

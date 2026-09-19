@@ -9,7 +9,7 @@
       </div>
       <h1 class="mb-3">Checkout</h1>
       <p class="mb-1 text-muted">You're about to pay</p>
-      <div class="badge-price fs-3 mb-3 d-inline-block">UGX {{ course.price|floatformat:0 }}</div>
+      <div class="badge-price fs-3 mb-3 d-inline-block">UGX {{ course.price|floatformat:"0g" }}</div>
       <p class="text-muted mb-4">for <strong>{{ course.title }}</strong></p>
       <form method="post">
         {% csrf_token %}

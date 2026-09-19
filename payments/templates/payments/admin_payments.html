@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
 {% block content %}
 <h1 class="mb-4">Payments</h1>
-<table class="table">
+<div class="table-responsive"><table class="table align-middle">
   <thead><tr><th>Student</th><th>Course</th><th>Amount</th><th>Method</th><th>Status</th><th>Date</th><th></th></tr></thead>
   <tbody>
     {% for p in payments %}
       <tr>
         <td>{{ p.user.username }} ({{ p.user.phone }})</td>
         <td>{{ p.course.title }}</td>
-        <td>UGX {{ p.amount|floatformat:0 }}</td>
+        <td>UGX {{ p.amount|floatformat:"0g" }}</td>
         <td>{{ p.get_method_display }}</td>
         <td>
           <span class="badge {% if p.status == 'success' %}bg-success{% elif p.status == 'failed' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
@@ -29,5 +29,5 @@
       <tr><td colspan="7" class="text-muted">No payments yet.</td></tr>
     {% endfor %}
   </tbody>
-</table>
+</table></div>
 {% endblock %}

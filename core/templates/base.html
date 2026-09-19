@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{% block title %}{{ site_settings.site_name }}{% endblock %}</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230FA898'/%3E%3Ctext x='32' y='45' font-size='34' font-family='Arial' font-weight='700' fill='white' text-anchor='middle'%3EQ%3C/text%3E%3C/svg%3E">
 
@@ -92,6 +92,7 @@
     color: #fff;
     transform: translateY(-1px);
   }
+  .btn-sm.btn-teal, .btn-sm.btn-outline-teal { padding: 6px 14px; }
   .card {
     border: 1px solid var(--border);
     border-radius: 16px;
@@ -145,6 +146,32 @@
   footer a { color: #C9CDD3; text-decoration: none; }
   footer a:hover { color: #fff; }
   footer .fw-bold { color: #fff; }
+
+  /* ---- phone: app-style bottom tab bar ---- */
+  .bottom-nav { display: none; }
+  @media (min-width: 768px) { .install-mobile { display: none !important; } }
+  @media (max-width: 767.98px) {
+    body { padding-bottom: calc(68px + env(safe-area-inset-bottom)); }
+    .navbar .container { flex-wrap: nowrap; }
+    .navbar-brand small { display: none; }
+    .top-links { display: none !important; }
+    footer { margin-bottom: 0; }
+    .bottom-nav {
+      display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+      background: rgba(255,255,255,.97); backdrop-filter: blur(10px);
+      border-top: 1px solid var(--border);
+      padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    }
+    .bn-item {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      padding: 6px 2px; border-radius: 12px; text-decoration: none;
+      color: var(--muted); font-size: 11px; font-weight: 600; background: none; border: 0;
+    }
+    .bn-item svg { width: 22px; height: 22px; }
+    .bn-item.active { color: var(--teal-dark); background: var(--teal-light); }
+    .bn-cta { color: #fff !important; background: var(--teal); }
+  }
 </style>
 {% block extra_head %}{% endblock %}
 </head>
@@ -158,7 +185,8 @@
         <small>For Law Students</small>
       </span>
     </a>
-    <div class="d-flex align-items-center gap-3 ms-auto">
+    <button type="button" class="btn btn-outline-teal btn-sm pwa-install-btn install-mobile d-none ms-auto">Install App</button>
+    <div class="top-links d-flex align-items-center gap-3 ms-auto">
       <button type="button" class="btn btn-outline-teal btn-sm pwa-install-btn d-none">Install App</button>
       <a class="nav-link" href="{% url 'core:home' %}">Browse</a>
       {% if user.is_authenticated %}
@@ -190,6 +218,45 @@
   {% endfor %}
   {% block content %}{% endblock %}
 </div>
+
+{% with vn=request.resolver_match.view_name %}
+<nav class="bottom-nav" aria-label="Main navigation">
+  <a href="{% url 'core:home' %}" class="bn-item {% if vn == 'core:home' %}active{% endif %}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg>Home
+  </a>
+  {% if user.is_authenticated %}
+    {% if user.is_superuser or user.role == 'admin' %}
+      <a href="{% url 'courses:admin_dashboard' %}" class="bn-item {% if vn == 'courses:admin_dashboard' %}active{% endif %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg>Admin
+      </a>
+      <a href="{% url 'payments:admin_payments' %}" class="bn-item {% if vn == 'payments:admin_payments' %}active{% endif %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Payments
+      </a>
+    {% elif user.role == 'teacher' %}
+      <a href="{% url 'courses:teacher_dashboard' %}" class="bn-item {% if vn == 'courses:teacher_dashboard' %}active{% endif %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Teach
+      </a>
+      <a href="{% url 'courses:add_course' %}" class="bn-item {% if vn == 'courses:add_course' %}active{% endif %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>New course
+      </a>
+    {% else %}
+      <a href="{% url 'courses:my_learning' %}" class="bn-item {% if vn == 'courses:my_learning' %}active{% endif %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6c-2-1.5-5-2-8-1v13c3-1 6-.5 8 1 2-1.5 5-2 8-1V5c-3-1-6-.5-8 1z"/><path d="M12 6v13"/></svg>Learning
+      </a>
+    {% endif %}
+    <a href="{% url 'accounts:profile' %}" class="bn-item {% if vn == 'accounts:profile' %}active{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Account
+    </a>
+  {% else %}
+    <a href="{% url 'accounts:login' %}" class="bn-item {% if vn == 'accounts:login' %}active{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>Sign in
+    </a>
+    <a href="{% url 'accounts:register' %}" class="bn-item bn-cta">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Get started
+    </a>
+  {% endif %}
+</nav>
+{% endwith %}
 
 <footer class="py-5 mt-5">
   <div class="container">
