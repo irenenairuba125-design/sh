@@ -23,6 +23,11 @@ if not SECRET_KEY or SECRET_KEY == _DEV_KEY:
 DEBUG = config('DEBUG', default=not os.environ.get('VERCEL'), cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost,.vercel.app', cast=Csv())
 CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='https://*.vercel.app', cast=Csv())
+if os.environ.get('VERCEL'):
+    # On Vercel: never trust local-only values pasted from .env.example.
+    DEBUG = False
+    ALLOWED_HOSTS = list(ALLOWED_HOSTS) + ['.vercel.app']
+    CSRF_TRUSTED_ORIGINS = list(CSRF_TRUSTED_ORIGINS) + ['https://*.vercel.app']
 # Vercel terminates HTTPS in front of Django
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
