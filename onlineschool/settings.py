@@ -114,7 +114,9 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            # Vercel's disk is read-only except /tmp, so a demo database lives there (it resets
+            # on cold starts; set DATABASE_URL for permanent data).
+            'NAME': '/tmp/qiora.sqlite3' if os.environ.get('VERCEL') else BASE_DIR / 'db.sqlite3',
         }
     }
 
