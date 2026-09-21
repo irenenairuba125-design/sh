@@ -15,6 +15,8 @@ CATEGORY_COLORS = {
     'languages': ('#12A594', '#0C8577'),
     'agriculture': ('#6BA33A', '#508428'),
     'career': ('#E26A4A', '#C14E31'),
+    'law': ('#3E5C76', '#2E4457'),
+    'other': ('#7A8794', '#5E6A76'),
     'legal_writing': ('#0FA898', '#0C8A7D'),
     'moot_court': ('#5B5FEF', '#4347C4'),
     'case_law': ('#F2A93B', '#D98E1F'),

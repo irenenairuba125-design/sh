@@ -28,9 +28,9 @@ def _seed():
     if Course.objects.exists():
         return
     teacher = User(
-        username='demo_advocate', role=User.Role.TEACHER, is_verified_teacher=True,
-        headline='Advocate of the High Court', location='Kampala',
-        bio='Practising advocate who teaches the skills lecture halls skip.',
+        username='demo_lecturer', role=User.Role.TEACHER, is_verified_teacher=True,
+        headline='Lecturer and practitioner', location='Kampala',
+        bio='Practitioner who teaches the skills lecture halls skip.',
     )
     teacher.set_unusable_password()
     teacher.save()
@@ -41,7 +41,7 @@ def _seed():
          'Formulas, tables and charts you will actually use in coursework and at work.'),
         ('Python programming from zero', 'technology', 'beginner', 35000,
          'Write your first programs and build a small project step by step.'),
-        ('Draft your first plaint in an afternoon', 'legal_writing', 'intermediate', 25000,
+        ('Draft your first plaint in an afternoon', 'law', 'intermediate', 25000,
          'A walk through pleadings: parties, facts, causes of action and prayers.'),
         ('Write a CV that gets interviews', 'career', 'beginner', 10000,
          'Layout, wording and interview preparation for your first job.'),

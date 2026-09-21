@@ -26,7 +26,7 @@ class Base(TestCase):
         cls.teacher = User.objects.create_user('teach', 't@x.com', 'pw12345!x', role='teacher', phone='0771')
         cls.other_teacher = User.objects.create_user('teach2', 't2@x.com', 'pw12345!x', role='teacher')
         cls.student = User.objects.create_user('stud', 's@x.com', 'pw12345!x', phone='0772')
-        cls.course = Course.objects.create(title='Zebra Plaint Basics', price=30000, teacher=cls.teacher, category='legal_writing')
+        cls.course = Course.objects.create(title='Zebra Plaint Basics', price=30000, teacher=cls.teacher, category='business')
         cls.free_lesson = Lesson.objects.create(course=cls.course, title='Free', order=1, free_preview=True)
         cls.paid_lesson = Lesson.objects.create(course=cls.course, title='Paid', order=2)
 
@@ -354,7 +354,7 @@ class RolesAndAccounts(Base):
     def test_teacher_created_course_is_owned_by_teacher(self):
         self.client.force_login(self.teacher)
         r = self.client.post(reverse('courses:add_course'), {
-            'title': 'New', 'category': 'adr', 'level': 'beginner', 'description': 'd', 'price': '10000', 'is_published': 'on',
+            'title': 'New', 'category': 'law', 'level': 'beginner', 'description': 'd', 'price': '10000', 'is_published': 'on',
         })
         self.assertEqual(r.status_code, 302)
         self.assertEqual(Course.objects.get(title='New').teacher, self.teacher)

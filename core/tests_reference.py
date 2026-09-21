@@ -22,9 +22,9 @@ def make_course(teacher, title, price=12000, **extra):
 
 class BrowseFilters(Base):
     def setUp(self):
-        self.cheap = make_course(self.teacher, 'Cheap Course', 5000, category='adr')
-        self.mid = make_course(self.teacher, 'Mid Course', 12000, category='adr')
-        self.dear = make_course(self.teacher, 'Dear Course', 20000, category='moot_court')
+        self.cheap = make_course(self.teacher, 'Cheap Course', 5000, category='law')
+        self.mid = make_course(self.teacher, 'Mid Course', 12000, category='law')
+        self.dear = make_course(self.teacher, 'Dear Course', 20000, category='technology')
         for c in (self.cheap, self.mid, self.dear):
             Lesson.objects.create(course=c, title='l', order=1, kind='video', free_preview=(c is self.mid))
         Lesson.objects.create(course=self.dear, title='a1', order=2, kind='audio')
@@ -51,7 +51,7 @@ class BrowseFilters(Base):
         self.assertEqual(self.titles(rating='4half'), {'Mid Course'})
         self.assertEqual(self.titles(rating='4plus'), {'Mid Course'})
         self.assertEqual(self.titles(freePreview='true'), {'Mid Course', 'Zebra Plaint Basics'})
-        self.assertEqual(self.titles(category='adr'), {'Cheap Course', 'Mid Course'})
+        self.assertEqual(self.titles(category='law'), {'Cheap Course', 'Mid Course'})
 
     def test_format_filter(self):
         self.assertEqual(self.titles(**{'format': 'audio-heavy'}), {'Dear Course'})
@@ -183,7 +183,7 @@ class TeacherSignup(Base):
 
 
 class VerificationAndDrafts(Base):
-    POST = {'title': 'Fresh', 'category': 'adr', 'level': 'beginner', 'description': 'd',
+    POST = {'title': 'Fresh', 'category': 'law', 'level': 'beginner', 'description': 'd',
             'price': '10000', 'is_published': 'on'}
 
     def test_unverified_teacher_saves_draft_and_it_is_hidden(self):

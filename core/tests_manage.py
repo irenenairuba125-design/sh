@@ -14,7 +14,7 @@ class CourseManagement(Base):
         self.assertEqual(self.client.get(url).status_code, 403)
         self.client.force_login(self.teacher)
         self.assertEqual(self.client.get(url).status_code, 200)
-        r = self.client.post(url, {'title': 'Renamed', 'category': 'adr', 'level': 'beginner', 'description': 'x',
+        r = self.client.post(url, {'title': 'Renamed', 'category': 'law', 'level': 'beginner', 'description': 'x',
                                    'price': '45000', 'is_published': 'on'})
         self.assertEqual(r.status_code, 302)
         self.course.refresh_from_db()
@@ -23,7 +23,7 @@ class CourseManagement(Base):
     def test_admin_can_reassign_teacher(self):
         self.client.force_login(self.admin)
         r = self.client.post(reverse('courses:edit_course', args=[self.course.id]), {
-            'title': 'T', 'category': 'adr', 'level': 'beginner', 'description': '', 'price': '1000',
+            'title': 'T', 'category': 'law', 'level': 'beginner', 'description': '', 'price': '1000',
             'teacher': self.other_teacher.id, 'is_published': 'on'})
         self.assertEqual(r.status_code, 302)
         self.course.refresh_from_db()
@@ -81,9 +81,9 @@ class Search(Base):
         self.assertEqual(self.client.get('/courses/', {'q': 'x' * 500}).status_code, 200)
 
     def test_search_combines_with_category(self):
-        html = self.client.get('/courses/', {'q': 'zebra', 'category': 'adr'}).content.decode()
+        html = self.client.get('/courses/', {'q': 'zebra', 'category': 'law'}).content.decode()
         self.assertIn('No courses match', html)
-        html = self.client.get('/courses/', {'q': 'zebra', 'category': 'legal_writing'}).content.decode()
+        html = self.client.get('/courses/', {'q': 'zebra', 'category': 'business'}).content.decode()
         self.assertNotIn('No courses match', html)
 
 

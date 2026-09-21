@@ -24,6 +24,8 @@ CATEGORY_BLURBS = {
     'languages': 'Speak, write, present',
     'agriculture': 'Farming and agribusiness',
     'career': 'Jobs, CVs, life skills',
+    'law': 'Drafting, advocacy, procedure',
+    'other': 'Everything else',
     'legal_writing': 'Plaints, contracts, opinions',
     'moot_court': 'Argue it and win',
     'case_law': 'Read and use precedent',
