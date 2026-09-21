@@ -1,6 +1,6 @@
-# Qiora for Law Students
+# Qiora for Students
 
-A pay-to-access online studying system for law students in Uganda. Students register, pick a
+A pay-to-access online learning marketplace for students in Uganda, open to lecturers and teachers of every subject. Students register, pick a
 course, pay with MTN MoMo / Airtel Money / card (via Pesapal), get unlocked automatically,
 watch protected video, download notes, take quizzes and earn certificates. It installs on a
 phone as an app (PWA) and lessons can be saved for offline study.

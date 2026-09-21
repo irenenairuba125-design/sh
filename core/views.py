@@ -12,6 +12,18 @@ from payments.models import Enrollment
 
 
 CATEGORY_BLURBS = {
+    'business': 'Start, run and grow',
+    'finance': 'Books, budgets, investing',
+    'technology': 'Code, apps and IT skills',
+    'data': 'Analysis and spreadsheets',
+    'science': 'Biology, chemistry, maths',
+    'health': 'Nursing, medicine, wellbeing',
+    'engineering': 'Build, design, repair',
+    'education': 'Teach and study better',
+    'arts_design': 'Design, music, media',
+    'languages': 'Speak, write, present',
+    'agriculture': 'Farming and agribusiness',
+    'career': 'Jobs, CVs, life skills',
     'legal_writing': 'Plaints, contracts, opinions',
     'moot_court': 'Argue it and win',
     'case_law': 'Read and use precedent',
@@ -99,9 +111,9 @@ def manifest(request):
     iOS). Generated in code rather than a static file so the name always matches
     SiteSettings if you customise it later."""
     data = {
-        'name': 'Qiora for Law Students',
+        'name': 'Qiora for Students',
         'short_name': 'Qiora',
-        'description': "Practical legal skills for law students — moot court, drafting, case briefing and Bar Course prep.",
+        'description': "Practical skills for every course and career, taught by people who do the work and paid for by mobile money.",
         'start_url': '/',
         'scope': '/',
         'display': 'standalone',

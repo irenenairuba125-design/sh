@@ -77,9 +77,9 @@
 <section class="cover">
   <div class="cover-grid">
     <div>
-      <span class="eyebrow">Uganda's marketplace for law skills</span>
-      <h1>Learn the law. <span>Get paid to teach it.</span></h1>
-      <p class="lead">Moot court, legal drafting, case briefing, Bar Course prep. Practical skills from advocates who've done the work. Paid for with mobile money &mdash; subscribe monthly, cancel anytime.</p>
+      <span class="eyebrow">Uganda's marketplace for practical skills</span>
+      <h1>Learn anything. <span>Get paid to teach it.</span></h1>
+      <p class="lead">Business, tech, health, law, farming, languages and more. Practical skills from people who've done the work. Paid for with mobile money &mdash; subscribe monthly, cancel anytime.</p>
       <div class="d-flex flex-wrap gap-2">
         <a href="{% url 'courses:browse' %}" class="btn btn-cover btn-lg">Browse courses</a>
         {% if user.is_authenticated and user.role == 'teacher' or user.is_superuser %}
@@ -184,13 +184,13 @@
 
 <section class="mb-5">
   <div class="row g-4 align-items-center">
-    <div class="col-md-6"><div class="split-photo"><img src="{% static 'core/photos/justice.jpg' %}" alt="Lady Justice statue beside a gavel and an open law book" loading="lazy"></div></div>
+    <div class="col-md-6"><div class="split-photo"><img src="{% static 'core/photos/justice.jpg' %}" alt="Students studying together" loading="lazy"></div></div>
     <div class="col-md-6">
       <div class="small fw-bold text-uppercase mb-2" style="color:var(--teal-dark);letter-spacing:.08em;">Why {{ site_settings.site_name|default:"Qiora" }}</div>
-      <h2 class="section-title mb-3">Learn from people who've stood in court</h2>
-      <p class="text-muted">Lectures give you the law. Practising advocates show you how it's argued, drafted and won. Short lessons, real examples, and a quiz at the end of each one.</p>
+      <h2 class="section-title mb-3">Learn from people who've done the work</h2>
+      <p class="text-muted">Lectures give you the theory. Practitioners show you how it's really done. Short lessons, real examples, and a quiz at the end of each one.</p>
       <ul class="list-unstyled mb-0">
-        <li class="d-flex gap-2 mb-2"><span style="color:var(--teal-dark);">&#10003;</span> Moot court, drafting, case briefing and Bar prep</li>
+        <li class="d-flex gap-2 mb-2"><span style="color:var(--teal-dark);">&#10003;</span> Courses across every subject, from accounting to agriculture</li>
         <li class="d-flex gap-2 mb-2"><span style="color:var(--teal-dark);">&#10003;</span> Download lessons and notes for offline study</li>
         <li class="d-flex gap-2"><span style="color:var(--teal-dark);">&#10003;</span> Earn a certificate when you pass the quiz</li>
       </ul>
@@ -200,8 +200,8 @@
 
 <section class="cta-band">
   <div class="bg"><img src="{% static 'core/photos/gavel.jpg' %}" alt="" loading="lazy"></div>
-  <h2 class="fw-bold mb-2">Advocates know how. Now it gets paid.</h2>
-  <p class="mb-4" style="opacity:.85;max-width:560px;margin-inline:auto;">Law skills have value. Learn them for a monthly price you can afford, or teach them and get paid to your mobile money.</p>
+  <h2 class="fw-bold mb-2">Experts know how. Now it gets paid.</h2>
+  <p class="mb-4" style="opacity:.85;max-width:560px;margin-inline:auto;">Skills have value. Learn them for a monthly price you can afford, or teach them and get paid to your mobile money.</p>
   <div class="d-flex flex-wrap justify-content-center gap-2">
     <a href="{% url 'courses:browse' %}" class="btn btn-cover btn-lg">Browse courses</a>
     <a href="{% url 'accounts:register' %}?role=creator" class="btn btn-cover-ghost btn-lg">Start teaching</a>

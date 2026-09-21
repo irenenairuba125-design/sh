@@ -7,6 +7,18 @@ from onlineschool.storage_backends import protected_storage
 
 class Course(models.Model):
     class Category(models.TextChoices):
+        BUSINESS = 'business', 'Business & Entrepreneurship'
+        FINANCE = 'finance', 'Accounting & Finance'
+        TECHNOLOGY = 'technology', 'Technology & Programming'
+        DATA = 'data', 'Data & Analytics'
+        SCIENCE = 'science', 'Science & Mathematics'
+        HEALTH = 'health', 'Health & Medicine'
+        ENGINEERING = 'engineering', 'Engineering'
+        EDUCATION = 'education', 'Education & Teaching'
+        ARTS_DESIGN = 'arts_design', 'Arts & Design'
+        LANGUAGES = 'languages', 'Languages & Communication'
+        AGRICULTURE = 'agriculture', 'Agriculture'
+        CAREER = 'career', 'Career & Personal Growth'
         LEGAL_WRITING = 'legal_writing', 'Legal Writing & Drafting'
         MOOT_COURT = 'moot_court', 'Moot Court & Advocacy'
         CASE_LAW = 'case_law', 'Case Law & Precedent'

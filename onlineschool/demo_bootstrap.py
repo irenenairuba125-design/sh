@@ -35,14 +35,16 @@ def _seed():
     teacher.set_unusable_password()
     teacher.save()
     samples = [
-        ('Draft your first plaint in an afternoon', 'legal_writing', 'beginner', 30000,
-         'A step-by-step walk through pleadings: parties, facts, causes of action and prayers.'),
-        ('Moot court: argue it and win', 'moot_court', 'intermediate', 25000,
-         'Structure a submission, handle judges\' questions and rebut like a practising advocate.'),
-        ('Case briefing that saves hours', 'case_law', 'beginner', 15000,
-         'Read a judgment quickly, pull out the ratio and build a brief you can reuse.'),
-        ('Pass the Bar Course', 'bar_prep', 'advanced', 45000,
-         'Study plans, past-paper practice and exam technique for the Law Development Centre.'),
+        ('Start a small business with mobile money', 'business', 'beginner', 30000,
+         'Pick an idea, price it, keep simple books and get your first customers.'),
+        ('Excel for students and graduates', 'data', 'beginner', 20000,
+         'Formulas, tables and charts you will actually use in coursework and at work.'),
+        ('Python programming from zero', 'technology', 'beginner', 35000,
+         'Write your first programs and build a small project step by step.'),
+        ('Draft your first plaint in an afternoon', 'legal_writing', 'intermediate', 25000,
+         'A walk through pleadings: parties, facts, causes of action and prayers.'),
+        ('Write a CV that gets interviews', 'career', 'beginner', 10000,
+         'Layout, wording and interview preparation for your first job.'),
     ]
     for title, category, level, price, description in samples:
         course = Course.objects.create(

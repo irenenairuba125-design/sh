@@ -4,11 +4,11 @@ from django.db import models
 class SiteSettings(models.Model):
     """Singleton row: the momo number, price defaults and logo an admin edits from /django-admin/."""
 
-    site_name = models.CharField(max_length=100, default='Qiora for Law Students')
+    site_name = models.CharField(max_length=100, default='Qiora for Students')
     tagline = models.CharField(
         max_length=200,
         blank=True,
-        default='Learn the law skills lecture halls skip.',
+        default='Learn practical skills for any course.',
     )
     momo_number = models.CharField(max_length=20, blank=True)
     platform_fee_percent = models.PositiveIntegerField(

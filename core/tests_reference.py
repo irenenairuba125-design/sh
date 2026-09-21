@@ -162,6 +162,7 @@ class TeacherSignup(Base):
 
     def test_cannot_self_register_as_admin_or_verified(self):
         for role in ('admin', 'superuser', 'staff'):
+            self.client.logout()  # a signed-in visitor is sent to their page instead of the form
             self.client.post(reverse('accounts:register'), dict(self.DATA, username='x' + role, role=role,
                                                                 is_superuser='on', is_staff='on', is_verified_teacher='on'))
             u = User.objects.get(username='x' + role)
@@ -318,9 +319,9 @@ class InfoPagesAndHome(Base):
 
     def test_home_sections_match_the_reference(self):
         html = self.client.get('/').content.decode()
-        for text in ['Learn the law.', 'Get paid to teach it.', 'Browse courses', 'Start teaching', 'Mobile-money native',
+        for text in ['Learn anything.', 'Get paid to teach it.', 'Browse courses', 'Start teaching', 'Mobile-money native',
                      'Real skills. Real work.', 'Two doors. Same house.', 'If you want to learn', 'If you want to teach',
-                     'Advocates know how. Now it gets paid.', 'Made for mobile money', 'Made in Uganda']:
+                     'Experts know how. Now it gets paid.', 'Made for mobile money', 'Made in Uganda']:
             self.assertIn(text, html, text)
 
     def test_live_card_only_shows_real_numbers(self):
