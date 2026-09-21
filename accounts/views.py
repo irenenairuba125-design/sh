@@ -11,6 +11,8 @@ from .models import User
 
 
 def register(request):
+    if request.user.is_authenticated:
+        return redirect('accounts:post_login')
     wants_to_teach = request.GET.get('role') in ('creator', 'teacher')
     if request.method == 'POST':
         form = RegisterForm(request.POST)
